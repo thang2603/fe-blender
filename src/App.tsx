@@ -1,9 +1,9 @@
-import CanvasMain from "./core/canvas/CanvasMain";
+import Editor from "./core/Index";
 
 function App() {
   return (
     <div>
-      <CanvasMain />
+      <Editor />
     </div>
   );
 }
