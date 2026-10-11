@@ -1,8 +1,9 @@
 import type { InstancedMesh2 } from "@three.ez/instanced-mesh";
 import { useCallback, useEffect, type RefObject } from "react";
-import { pasteJsonFromClipboard } from "../utils/helper";
-import type { NodeType } from "../../stores/type";
 import { Euler } from "three";
+import useCanvasStore from "../../stores/useCanvasStore";
+import useControlStore from "../../stores/useControlStore";
+import type { VectorType } from "../../stores/type";
 
 const SHORT_CUT = {
   ADD: "V",
@@ -11,25 +12,34 @@ type ShortCutType = {
   ref: RefObject<InstancedMesh2>;
   type: string;
 };
+
 const _euler = new Euler();
 const useShortCut = ({ ref, type }: ShortCutType) => {
-  const onAdd = useCallback(async () => {
-    const mesh = ref.current;
-    const listObj: Record<string, NodeType[]> | null =
-      await pasteJsonFromClipboard();
-    if (!listObj) return;
-    const data = listObj?.[type];
-    if (!data) return;
-    const instanceCount = mesh.instancesCount;
-    mesh.addInstances(data.length, (obj, index) => {
-      const item = data[index - instanceCount];
-      obj.position.set(...item.position);
-      obj.scale.set(...item.scale);
-      _euler.set(...item.rotation);
-      obj.quaternion.setFromEuler(_euler.clone());
-    });
-    mesh.computeBVH();
-  }, [ref, type]);
+  const addInstances = useCanvasStore((state) => state.addInstances);
+  const mousePosition = useControlStore((state) => state.mousePosition);
+
+  const onAdd = useCallback(
+    async (pos: VectorType | null) => {
+      if (!Object.keys(addInstances).length) return;
+      const mesh = ref.current;
+      const data = addInstances?.[type];
+      if (!data) return;
+      if (!pos) return;
+      const instanceCount = mesh.instancesCount;
+      mesh.addInstances(data.length, (obj, index) => {
+        const item = data[index - instanceCount];
+        const newPos = item.position.map(
+          (i, index) => pos[index] + i,
+        ) as VectorType;
+        obj.position.set(...newPos);
+        obj.scale.set(...item.scale);
+        _euler.set(...item.rotation);
+        obj.quaternion.setFromEuler(_euler.clone());
+      });
+      mesh.computeBVH();
+    },
+    [ref, type, addInstances],
+  );
 
   useEffect(() => {
     const handleKeyDown = async (event: KeyboardEvent) => {
@@ -39,7 +49,7 @@ const useShortCut = ({ ref, type }: ShortCutType) => {
       if (ctrlKey) {
         switch (key) {
           case SHORT_CUT.ADD:
-            onAdd();
+            onAdd(mousePosition);
             break;
           default:
             break;
@@ -51,7 +61,7 @@ const useShortCut = ({ ref, type }: ShortCutType) => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [onAdd]);
+  }, [onAdd, mousePosition]);
   return null;
 };
 

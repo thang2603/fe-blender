@@ -1,8 +1,6 @@
 import { INIT_INSTANCE_NODE } from "../../canvas/constants/data";
-import {
-  copyJsonToClipboard,
-  generateUniqueId,
-} from "../../canvas/utils/helper";
+import { generateUniqueId } from "../../canvas/utils/helper";
+import useCanvasStore from "../../stores/useCanvasStore";
 
 const instanceTypes = [
   {
@@ -14,15 +12,15 @@ const instanceTypes = [
 ];
 
 const BasicModel = () => {
+  const setAddInstances = useCanvasStore((state) => state.setAddInstances);
+
   const handleCopy = async (type: string) => {
     const obj = {
       ...INIT_INSTANCE_NODE,
       id: generateUniqueId(),
       type,
     };
-    await copyJsonToClipboard({
-      [type]: [obj],
-    });
+    setAddInstances({ [type]: [obj] });
   };
 
   return (

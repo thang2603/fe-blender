@@ -9,16 +9,12 @@ export type NodeType = {
   color: string;
 };
 
-export type InstanceNodeType = Record<string, NodeType>;
-
 export type CanvasStore = {
-  instanceId: string[];
-  listInstance: InstanceNodeType;
-  // Thêm index theo type: { "cube": ["id_1", "id_3"], "sphere": ["id_2"] }
-  instancesByType: Record<string, string[]>;
-  instanceAdded: NodeType[];
+  addInstances: Record<string, NodeType[]>;
+  setAddInstances: (addInstances: Record<string, NodeType[]>) => void;
+};
 
-  addInstances: (nodes: NodeType[]) => void;
-  removeInstances: (ids: string[]) => void;
-  updateInstances: (updatedNodes: Partial<NodeType>[]) => void;
+export type ControlStore = {
+  mousePosition: VectorType | null;
+  setMousePosition: (mousePosition: VectorType | null) => void;
 };
