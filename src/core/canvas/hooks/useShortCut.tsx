@@ -1,25 +1,27 @@
 import type { InstancedMesh2 } from "@three.ez/instanced-mesh";
 import { useCallback, useEffect, type RefObject } from "react";
-import { Euler } from "three";
+import { type Vector3Tuple } from "three";
 import useCanvasStore from "../../stores/useCanvasStore";
 import useControlStore from "../../stores/useControlStore";
-import type { VectorType } from "../../stores/type";
+import type { InstanceType } from "../../stores/type";
 
 const SHORT_CUT = {
   ADD: "V",
+  TRANSFORM: "G",
 };
+
 type ShortCutType = {
-  ref: RefObject<InstancedMesh2>;
+  ref: RefObject<InstancedMesh2<InstanceType>>;
   type: string;
 };
 
-const _euler = new Euler();
 const useShortCut = ({ ref, type }: ShortCutType) => {
-  const addInstances = useCanvasStore((state) => state.addInstances);
   const mousePosition = useControlStore((state) => state.mousePosition);
+  const addInstances = useCanvasStore((state) => state.addInstances);
+  const setIsTransform = useCanvasStore((state) => state.setIsTransform);
 
   const onAdd = useCallback(
-    async (pos: VectorType | null) => {
+    (pos: Vector3Tuple | null) => {
       if (!Object.keys(addInstances).length) return;
       const mesh = ref.current;
       const data = addInstances?.[type];
@@ -30,11 +32,11 @@ const useShortCut = ({ ref, type }: ShortCutType) => {
         const item = data[index - instanceCount];
         const newPos = item.position.map(
           (i, index) => pos[index] + i,
-        ) as VectorType;
+        ) as Vector3Tuple;
+        obj.uuid = item.id;
         obj.position.set(...newPos);
         obj.scale.set(...item.scale);
-        _euler.set(...item.rotation);
-        obj.quaternion.setFromEuler(_euler.clone());
+        obj.quaternion.set(...item.quaternion);
       });
       mesh.computeBVH();
     },
@@ -45,11 +47,15 @@ const useShortCut = ({ ref, type }: ShortCutType) => {
     const handleKeyDown = async (event: KeyboardEvent) => {
       const key = event.key.toUpperCase();
       const ctrlKey = event.ctrlKey;
-
+      event.preventDefault();
+      event.stopPropagation();
       if (ctrlKey) {
         switch (key) {
           case SHORT_CUT.ADD:
             onAdd(mousePosition);
+            break;
+          case SHORT_CUT.TRANSFORM:
+            setIsTransform("translate");
             break;
           default:
             break;
@@ -61,7 +67,8 @@ const useShortCut = ({ ref, type }: ShortCutType) => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [onAdd, mousePosition]);
+  }, [onAdd, setIsTransform, mousePosition]);
+
   return null;
 };
 
