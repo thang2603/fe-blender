@@ -1,6 +1,6 @@
 import type { InstancedMesh2 } from "@three.ez/instanced-mesh";
 import { useCallback, useEffect, type RefObject } from "react";
-import { type Vector3Tuple } from "three";
+import { Vector3 } from "three";
 import useCanvasStore from "../../stores/useCanvasStore";
 import useControlStore from "../../stores/useControlStore";
 import type { InstanceType } from "../../stores/type";
@@ -21,7 +21,7 @@ const useShortCut = ({ ref, type }: ShortCutType) => {
   const setIsTransform = useCanvasStore((state) => state.setIsTransform);
 
   const onAdd = useCallback(
-    (pos: Vector3Tuple | null) => {
+    (pos: Vector3 | null) => {
       if (!Object.keys(addInstances).length) return;
       const mesh = ref.current;
       const data = addInstances?.[type];
@@ -30,13 +30,12 @@ const useShortCut = ({ ref, type }: ShortCutType) => {
       const instanceCount = mesh.instancesCount;
       mesh.addInstances(data.length, (obj, index) => {
         const item = data[index - instanceCount];
-        const newPos = item.position.map(
-          (i, index) => pos[index] + i,
-        ) as Vector3Tuple;
+        const newPos = pos.add(item.position.clone());
+        console.log(newPos);
         obj.uuid = item.id;
-        obj.position.set(...newPos);
-        obj.scale.set(...item.scale);
-        obj.quaternion.set(...item.quaternion);
+        obj.position.set(...newPos.clone().toArray());
+        obj.scale.set(...item.scale.clone().toArray());
+        obj.quaternion.set(...item.quaternion.clone().toArray());
       });
       mesh.computeBVH();
     },

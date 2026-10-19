@@ -51,15 +51,13 @@ const InstanceMesh = ({ type }: InstanceMeshProps) => {
 
     mesh.setOpacityAt(instanceId, 0.5);
 
-    console.log(mesh.instances[instanceId]);
-
     const instance = mesh.instances[instanceId];
     const obj: NodeType = {
       id: instance.uuid,
       type,
-      position: instance.position.clone().toArray(),
-      quaternion: instance.quaternion.clone().toArray(),
-      scale: instance.scale.clone().toArray(),
+      position: instance.position.clone(),
+      quaternion: instance.quaternion.clone(),
+      scale: instance.scale.clone(),
       color: "",
       instanceId,
     };

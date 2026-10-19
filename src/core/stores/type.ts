@@ -1,11 +1,11 @@
-import type { Vector3Tuple, Vector4Tuple } from "three";
+import type { Quaternion, Vector3 } from "three";
 
 export type NodeType = {
   id: string;
   type: string;
-  position: Vector3Tuple;
-  quaternion: Vector4Tuple;
-  scale: Vector3Tuple;
+  position: Vector3;
+  quaternion: Quaternion;
+  scale: Vector3;
   color: string;
   instanceId: number;
 };
@@ -32,6 +32,6 @@ export type CanvasStore = {
 };
 
 export type ControlStore = {
-  mousePosition: Vector3Tuple | null;
-  setMousePosition: (mousePosition: Vector3Tuple | null) => void;
+  mousePosition: Vector3 | null;
+  setMousePosition: (mousePosition: Vector3 | null) => void;
 };

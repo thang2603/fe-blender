@@ -8,7 +8,7 @@ const Grid = () => {
   const onPointerDown = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     const point = e.point.clone();
-    setMousePosition([point.x, 0, point.z]);
+    setMousePosition(point);
   };
 
   return (
