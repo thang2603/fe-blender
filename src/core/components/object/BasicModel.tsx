@@ -3,7 +3,6 @@ import {
   INIT_INSTANCE_NODE,
   INSTANCE_TYPES,
 } from "../../canvas/constants/data";
-import { generateUniqueId } from "../../canvas/utils/helper";
 import useCanvasStore from "../../stores/useCanvasStore";
 
 const BasicModel = () => {
@@ -12,7 +11,7 @@ const BasicModel = () => {
   const handleCopy = async (type: string) => {
     const obj = {
       ...INIT_INSTANCE_NODE,
-      id: generateUniqueId(),
+      id: "1",
       type,
     };
     setAddInstances({ [type]: [obj] });

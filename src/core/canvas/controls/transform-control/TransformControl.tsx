@@ -1,6 +1,6 @@
 import { TransformControls } from "@react-three/drei";
 import { useEffect, useMemo, useRef } from "react";
-import { Group } from "three";
+import { Group, Vector3 } from "three";
 import InstaneMeshTransform from "./InstaneMeshTransform";
 import { INSTANCE_TYPES } from "../../constants/data";
 import useCanvasStore from "../../../stores/useCanvasStore";
@@ -18,15 +18,21 @@ const TransformControl = () => {
   const setIsTransform = useCanvasStore((state) => state.setIsTransform);
   const instancesSelected = useMemo(() => {
     const res: Record<string, NodeType[]> = {};
-    const center = [];
+
+    const center = new Vector3(0, 0, 0);
     for (const [_, value] of selected) {
       const type = value.type;
       if (!res?.[type]) {
         res[type] = [];
       }
       res[type].push(value);
+      center.add(value.position.clone());
     }
-    return res;
+    center.divideScalar(selected.size);
+    return {
+      center,
+      data: res,
+    };
   }, [selected]);
 
   useEffect(() => {
@@ -59,12 +65,13 @@ const TransformControl = () => {
         mode={isTransform}
         enabled={!!isTransform}
       >
-        <group ref={groupRef}>
+        <group ref={groupRef} position={instancesSelected.center.clone()}>
           {INSTANCE_TYPES.map(({ type }) => (
             <InstaneMeshTransform
               type={type}
               key={`${type}_tranfrom`}
-              instances={instancesSelected?.[type]}
+              instances={instancesSelected?.data?.[type]}
+              center={instancesSelected.center}
             />
           ))}
         </group>

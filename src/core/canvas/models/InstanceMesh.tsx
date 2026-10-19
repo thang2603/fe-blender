@@ -49,9 +49,8 @@ const InstanceMesh = ({ type }: InstanceMeshProps) => {
     const instanceId = event.instanceId;
     if (instanceId === undefined) return;
 
-    mesh.setOpacityAt(instanceId, 0.5);
-
     const instance = mesh.instances[instanceId];
+    console.log(mesh.instances);
     const obj: NodeType = {
       id: instance.uuid,
       type,

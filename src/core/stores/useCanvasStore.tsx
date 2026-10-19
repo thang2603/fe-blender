@@ -9,12 +9,14 @@ const initState = {
 
 const useCanvasStore = create<CanvasStore>((set) => ({
   ...initState,
+
   setAddInstances: (addInstances: Record<string, NodeType[]>) =>
     set({ addInstances }),
   selectInstance: (instance: NodeType) =>
     set((state) => {
       const newMap = new Map<string, NodeType>(state.selected);
       newMap.set(instance.id, instance);
+      console.log(newMap);
       return {
         selected: newMap,
       };

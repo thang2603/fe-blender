@@ -1,17 +1,19 @@
 import { useGLTF } from "@react-three/drei";
 import type { InstancedMesh2 } from "@three.ez/instanced-mesh";
 import { useEffect, useMemo, useRef } from "react";
-import type { BufferGeometry, Material } from "three";
+import type { BufferGeometry, Material, Vector3 } from "three";
 import type { InstanceType, NodeType } from "../../../stores/type";
 
 type InstaneMeshTransformProps = {
   type: string;
   instances: NodeType[];
+  center: Vector3;
 };
 const count = 10;
 const InstaneMeshTransform = ({
   type,
   instances = [],
+  center,
 }: InstaneMeshTransformProps) => {
   const { meshes, materials } = useGLTF(`/models/${type}.glb`);
   const ref = useRef<InstancedMesh2<InstanceType>>(null!);
@@ -42,13 +44,14 @@ const InstaneMeshTransform = ({
     const instanceCount = mesh.instancesCount;
     mesh.addInstances(instances.length, (obj, index) => {
       const item = instances[index - instanceCount];
+      const newPos = item.position.sub(center);
       obj.uuid = item.id;
-      obj.position.set(...item.position);
-      obj.scale.set(...item.scale);
-      obj.quaternion.set(...item.quaternion);
+      obj.position.set(...newPos.clone().toArray());
+      obj.scale.set(...item.scale.clone().toArray());
+      obj.quaternion.set(...item.quaternion.clone().toArray());
     });
     mesh.computeBVH();
-  }, [instances]);
+  }, [instances, center]);
 
   return <instancedMesh2 args={args} ref={ref} />;
 };

@@ -4,6 +4,7 @@ import { Vector3 } from "three";
 import useCanvasStore from "../../stores/useCanvasStore";
 import useControlStore from "../../stores/useControlStore";
 import type { InstanceType } from "../../stores/type";
+import { generateUniqueId } from "../utils/helper";
 
 const SHORT_CUT = {
   ADD: "V",
@@ -24,19 +25,21 @@ const useShortCut = ({ ref, type }: ShortCutType) => {
     (pos: Vector3 | null) => {
       if (!Object.keys(addInstances).length) return;
       const mesh = ref.current;
-      const data = addInstances?.[type];
+      let data = addInstances?.[type];
       if (!data) return;
       if (!pos) return;
       const instanceCount = mesh.instancesCount;
+      data = data.map((item) => ({ ...item, id: generateUniqueId() }));
+      console.log(data);
       mesh.addInstances(data.length, (obj, index) => {
         const item = data[index - instanceCount];
         const newPos = pos.add(item.position.clone());
-        console.log(newPos);
         obj.uuid = item.id;
         obj.position.set(...newPos.clone().toArray());
         obj.scale.set(...item.scale.clone().toArray());
         obj.quaternion.set(...item.quaternion.clone().toArray());
       });
+      console.log(mesh);
       mesh.computeBVH();
     },
     [ref, type, addInstances],
