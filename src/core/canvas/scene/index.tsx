@@ -2,7 +2,7 @@ import { OrbitControls, Stats } from "@react-three/drei";
 import Models from "../models/Models";
 import MouseTracker from "../controls/MouseTracker";
 import Grid from "../controls/Grid";
-import TransformControl from "../controls/transform-control/TransformControl";
+import TransformControl from "../controls/transform-control";
 
 const Scene = () => {
   return (

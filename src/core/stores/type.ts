@@ -14,11 +14,11 @@ export type InstanceType = {
   uuid: string;
 };
 
-export type TransfromMode = "translate" | "rotate" | "scale" | undefined;
+export type TransformMode = "translate" | "rotate" | "scale" | undefined;
 export type CanvasStore = {
   addInstances: Record<string, NodeType[]>;
   selected: Map<string, NodeType>;
-  isTransform: TransfromMode;
+  isTransform: TransformMode;
   setAddInstances: (addInstances: Record<string, NodeType[]>) => void;
   //setlected
   selectInstance: (instances: NodeType) => void;
@@ -28,7 +28,7 @@ export type CanvasStore = {
   // clearSelection: () => void;
 
   // transform
-  setIsTransform: (isTransfrom: TransfromMode) => void;
+  setIsTransform: (isTransfrom: boolean) => void;
 };
 
 export type ControlStore = {

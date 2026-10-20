@@ -1,24 +1,23 @@
 import { TransformControls } from "@react-three/drei";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Group, Vector3 } from "three";
 import InstaneMeshTransform from "./InstaneMeshTransform";
 import { INSTANCE_TYPES } from "../../constants/data";
 import useCanvasStore from "../../../stores/useCanvasStore";
-import type { NodeType } from "../../../stores/type";
+import { type TransformMode, type NodeType } from "../../../stores/type";
 
 const KEY_MODE = {
   POSITION: "Q",
   ROTATION: "W",
   SCALE: "E",
 };
-const TransformControl = () => {
+const TransfromGroup = () => {
   const groupRef = useRef<Group>(null!);
-  const isTransform = useCanvasStore((state) => state.isTransform);
+  const [mode, setMode] = useState<TransformMode>("translate");
   const selected = useCanvasStore((state) => state.selected);
   const setIsTransform = useCanvasStore((state) => state.setIsTransform);
   const instancesSelected = useMemo(() => {
     const res: Record<string, NodeType[]> = {};
-
     const center = new Vector3(0, 0, 0);
     for (const [_, value] of selected) {
       const type = value.type;
@@ -40,13 +39,13 @@ const TransformControl = () => {
       const key = event.key.toUpperCase();
       switch (key) {
         case KEY_MODE.POSITION:
-          setIsTransform("translate");
+          setMode("translate");
           break;
         case KEY_MODE.ROTATION:
-          setIsTransform("rotate");
+          setMode("rotate");
           break;
         case KEY_MODE.SCALE:
-          setIsTransform("scale");
+          setMode("scale");
           break;
         default:
           break;
@@ -59,25 +58,19 @@ const TransformControl = () => {
   }, [setIsTransform]);
 
   return (
-    isTransform && (
-      <TransformControls
-        object={groupRef}
-        mode={isTransform}
-        enabled={!!isTransform}
-      >
-        <group ref={groupRef} position={instancesSelected.center.clone()}>
-          {INSTANCE_TYPES.map(({ type }) => (
-            <InstaneMeshTransform
-              type={type}
-              key={`${type}_tranfrom`}
-              instances={instancesSelected?.data?.[type]}
-              center={instancesSelected.center}
-            />
-          ))}
-        </group>
-      </TransformControls>
-    )
+    <TransformControls object={groupRef} mode={mode}>
+      <group ref={groupRef} position={instancesSelected.center}>
+        {INSTANCE_TYPES.map(({ type }) => (
+          <InstaneMeshTransform
+            type={type}
+            key={`${type}_tranfrom`}
+            instances={instancesSelected?.data?.[type]}
+            center={instancesSelected.center}
+          />
+        ))}
+      </group>
+    </TransformControls>
   );
 };
 
-export default TransformControl;
+export default TransfromGroup;

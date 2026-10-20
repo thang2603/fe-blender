@@ -41,16 +41,22 @@ const InstaneMeshTransform = ({
 
   useEffect(() => {
     const mesh = ref.current;
-    const instanceCount = mesh.instancesCount;
+    mesh.clearInstances();
+    (mesh.material as Material).transparent = true;
     mesh.addInstances(instances.length, (obj, index) => {
-      const item = instances[index - instanceCount];
-      const newPos = item.position.sub(center);
+      const item = instances[index];
+      const newPos = item.position.clone().sub(center);
       obj.uuid = item.id;
-      obj.position.set(...newPos.clone().toArray());
+      obj.position.set(...newPos.toArray());
       obj.scale.set(...item.scale.clone().toArray());
       obj.quaternion.set(...item.quaternion.clone().toArray());
+      obj.opacity = 0.3;
     });
+
     mesh.computeBVH();
+    return () => {
+      mesh.dispose();
+    };
   }, [instances, center]);
 
   return <instancedMesh2 args={args} ref={ref} />;

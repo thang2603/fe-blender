@@ -30,7 +30,7 @@ const useShortCut = ({ ref, type }: ShortCutType) => {
       if (!pos) return;
       const instanceCount = mesh.instancesCount;
       data = data.map((item) => ({ ...item, id: generateUniqueId() }));
-      console.log(data);
+
       mesh.addInstances(data.length, (obj, index) => {
         const item = data[index - instanceCount];
         const newPos = pos.add(item.position.clone());
@@ -39,8 +39,10 @@ const useShortCut = ({ ref, type }: ShortCutType) => {
         obj.scale.set(...item.scale.clone().toArray());
         obj.quaternion.set(...item.quaternion.clone().toArray());
       });
-      console.log(mesh);
       mesh.computeBVH();
+      return () => {
+        mesh.dispose();
+      };
     },
     [ref, type, addInstances],
   );
@@ -57,7 +59,7 @@ const useShortCut = ({ ref, type }: ShortCutType) => {
             onAdd(mousePosition);
             break;
           case SHORT_CUT.TRANSFORM:
-            setIsTransform("translate");
+            setIsTransform(true);
             break;
           default:
             break;
