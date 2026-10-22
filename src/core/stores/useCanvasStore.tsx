@@ -1,10 +1,13 @@
 import { create } from "zustand";
-import { type CanvasStore, type NodeType, type TransfromMode } from "./type";
+import { type CanvasStore, type NodeType } from "./type";
+import { covertMapInstance } from "./hepper";
+import { INIT_POSITION } from "../canvas/constants/data";
 
 const initState = {
   addInstances: {} as Record<string, NodeType[]>,
   selected: new Map<string, NodeType>(),
-  isTransform: undefined,
+  transformSelected: {},
+  center: INIT_POSITION.clone(),
 };
 
 const useCanvasStore = create<CanvasStore>((set) => ({
@@ -16,9 +19,11 @@ const useCanvasStore = create<CanvasStore>((set) => ({
     set((state) => {
       const newMap = new Map<string, NodeType>(state.selected);
       newMap.set(instance.id, instance);
-      console.log(newMap);
+      const { center, data: transformSelected } = covertMapInstance(newMap);
       return {
         selected: newMap,
+        center,
+        transformSelected,
       };
     }),
   toggleInstance: (instance: NodeType) =>
@@ -42,7 +47,6 @@ const useCanvasStore = create<CanvasStore>((set) => ({
         selected: newMap,
       };
     }),
-  setIsTransform: (isTransform: TransfromMode) => set({ isTransform }),
 }));
 
 export default useCanvasStore;

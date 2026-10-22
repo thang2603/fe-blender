@@ -7,9 +7,9 @@ export const INIT_SCALE: Vector3 = new Vector3(1, 1, 1);
 export const INIT_INSTANCE_NODE: NodeType = {
   id: "init_1",
   type: "cube",
-  position: INIT_POSITION,
-  quaternion: INIT_QUATERNION,
-  scale: INIT_SCALE,
+  position: INIT_POSITION.clone(),
+  quaternion: INIT_QUATERNION.clone(),
+  scale: INIT_SCALE.clone(),
   color: "#ffffff",
   opacity: 1,
   instanceId: 0,

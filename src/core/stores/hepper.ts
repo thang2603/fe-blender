@@ -1,14 +1,26 @@
 import type { NodeType } from "./type";
+import { INIT_POSITION } from "../canvas/constants/data";
 
-export const covertArrayInstance = (instances: NodeType[]) => {
-  const result: Record<string, NodeType[]> = {};
-
-  instances.forEach((item) => {
-    const type = item.type;
-    if (!result?.[type]) {
-      result[type] = [];
+export const covertMapInstance = (selected: Map<string, NodeType>) => {
+  const res: Record<string, NodeType[]> = {};
+  const center = INIT_POSITION.clone();
+  if (!selected || selected.size === 0) {
+    return {
+      center,
+      data: res,
+    };
+  }
+  for (const [, value] of selected) {
+    const type = value.type;
+    if (!res?.[type]) {
+      res[type] = [];
     }
-    result[type].push(item);
-  });
-  return result;
+    res[type].push(value);
+    center.add(value.position);
+  }
+  center.divideScalar(selected.size);
+  return {
+    center,
+    data: res,
+  };
 };

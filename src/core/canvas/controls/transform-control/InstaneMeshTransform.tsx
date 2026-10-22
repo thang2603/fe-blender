@@ -32,8 +32,8 @@ const InstaneMeshTransform = ({
   const args = useMemo(
     () =>
       [
-        scene?.geometry,
-        scene?.material,
+        scene?.geometry.clone(),
+        scene?.material.clone(),
         { capacity: count, createEntities: true },
       ] as ConstructorParameters<typeof InstancedMesh2>,
     [scene],

@@ -1,10 +1,9 @@
 import { TransformControls } from "@react-three/drei";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Group, Vector3 } from "three";
+import { useEffect, useRef, useState } from "react";
+import { Group } from "three";
 import InstaneMeshTransform from "./InstaneMeshTransform";
-import { INSTANCE_TYPES } from "../../constants/data";
 import useCanvasStore from "../../../stores/useCanvasStore";
-import { type TransformMode, type NodeType } from "../../../stores/type";
+import { type TransformMode } from "../../../stores/type";
 
 const KEY_MODE = {
   POSITION: "Q",
@@ -14,30 +13,9 @@ const KEY_MODE = {
 const TransfromGroup = () => {
   const groupRef = useRef<Group>(null!);
   const [mode, setMode] = useState<TransformMode>("translate");
-  const selected = useCanvasStore((state) => state.selected);
-  const instancesSelected = useMemo(() => {
-    const res: Record<string, NodeType[]> = {};
-    const center = new Vector3(0, 0, 0);
-    if (!selected || selected.size === 0) {
-      return {
-        center,
-        data: res,
-      };
-    }
-    for (const [, value] of selected) {
-      const type = value.type;
-      if (!res?.[type]) {
-        res[type] = [];
-      }
-      res[type].push(value);
-      center.add(value.position.clone());
-    }
-    center.divideScalar(selected.size);
-    return {
-      center,
-      data: res,
-    };
-  }, [selected]);
+
+  const center = useCanvasStore((state) => state.center);
+  const transformSelected = useCanvasStore((state) => state.transformSelected);
 
   useEffect(() => {
     const handleKeyDonw = (event: KeyboardEvent) => {
@@ -63,14 +41,18 @@ const TransfromGroup = () => {
   }, []);
 
   return (
-    <TransformControls object={groupRef} mode={mode} enabled={!!selected.size}>
-      <group ref={groupRef} position={instancesSelected.center}>
-        {INSTANCE_TYPES.map(({ type }) => (
+    <TransformControls
+      object={groupRef}
+      mode={mode}
+      enabled={!!transformSelected}
+    >
+      <group ref={groupRef} position={center}>
+        {Object.entries(transformSelected).map(([type, instances]) => (
           <InstaneMeshTransform
             type={type}
             key={`${type}_tranfrom`}
-            instances={instancesSelected?.data?.[type]}
-            center={instancesSelected.center}
+            instances={instances}
+            center={center}
           />
         ))}
       </group>

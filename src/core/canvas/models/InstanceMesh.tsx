@@ -35,8 +35,8 @@ const InstanceMesh = ({ type }: InstanceMeshProps) => {
   const args = useMemo(
     () =>
       [
-        scene?.geometry,
-        scene?.material,
+        scene?.geometry.clone(),
+        scene?.material.clone(),
         { capacity: count, createEntities: true },
       ] as ConstructorParameters<typeof InstancedMesh2>,
     [scene],
@@ -50,7 +50,7 @@ const InstanceMesh = ({ type }: InstanceMeshProps) => {
     if (instanceId === undefined) return;
     (mesh.material as Material).transparent = true;
     const instance = mesh.instances[instanceId];
-    instance.visible = false;
+
     const obj: NodeType = {
       id: instance.uuid,
       type,
@@ -61,6 +61,9 @@ const InstanceMesh = ({ type }: InstanceMeshProps) => {
       opacity: instance.opacity,
       instanceId,
     };
+    instance.scale.set(0, 0, 0);
+    mesh.setVisibilityAt(instanceId, false);
+    console.log(mesh);
     selectInstances(obj);
   };
   useEffect(() => {

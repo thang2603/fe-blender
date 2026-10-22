@@ -19,7 +19,8 @@ export type TransformMode = "translate" | "rotate" | "scale" | undefined;
 export type CanvasStore = {
   addInstances: Record<string, NodeType[]>;
   selected: Map<string, NodeType>;
-  isTransform: TransformMode;
+  transformSelected: Record<string, NodeType[]>;
+  center: Vector3;
   setAddInstances: (addInstances: Record<string, NodeType[]>) => void;
   //setlected
   selectInstance: (instances: NodeType) => void;
