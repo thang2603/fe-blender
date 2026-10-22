@@ -11,6 +11,7 @@ export const INIT_INSTANCE_NODE: NodeType = {
   quaternion: INIT_QUATERNION,
   scale: INIT_SCALE,
   color: "#ffffff",
+  opacity: 1,
   instanceId: 0,
 };
 

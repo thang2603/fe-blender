@@ -15,11 +15,16 @@ const TransfromGroup = () => {
   const groupRef = useRef<Group>(null!);
   const [mode, setMode] = useState<TransformMode>("translate");
   const selected = useCanvasStore((state) => state.selected);
-  const setIsTransform = useCanvasStore((state) => state.setIsTransform);
   const instancesSelected = useMemo(() => {
     const res: Record<string, NodeType[]> = {};
     const center = new Vector3(0, 0, 0);
-    for (const [_, value] of selected) {
+    if (!selected || selected.size === 0) {
+      return {
+        center,
+        data: res,
+      };
+    }
+    for (const [, value] of selected) {
       const type = value.type;
       if (!res?.[type]) {
         res[type] = [];
@@ -55,10 +60,10 @@ const TransfromGroup = () => {
     return () => {
       window.removeEventListener("keydown", handleKeyDonw);
     };
-  }, [setIsTransform]);
+  }, []);
 
   return (
-    <TransformControls object={groupRef} mode={mode}>
+    <TransformControls object={groupRef} mode={mode} enabled={!!selected.size}>
       <group ref={groupRef} position={instancesSelected.center}>
         {INSTANCE_TYPES.map(({ type }) => (
           <InstaneMeshTransform

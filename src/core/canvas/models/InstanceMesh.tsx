@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { BufferGeometry, Material } from "three";
 import { InstancedMesh2 } from "@three.ez/instanced-mesh";
 import "./extend";
@@ -12,7 +12,7 @@ type InstanceMeshProps = {
   type: string;
 };
 
-const count = 10;
+const count = 100;
 const InstanceMesh = ({ type }: InstanceMeshProps) => {
   const ref = useRef<InstancedMesh2<InstanceType>>(null!);
   const { meshes, materials } = useGLTF(`/models/${type}.glb`);
@@ -48,9 +48,9 @@ const InstanceMesh = ({ type }: InstanceMeshProps) => {
     if (!mesh) return;
     const instanceId = event.instanceId;
     if (instanceId === undefined) return;
-
+    (mesh.material as Material).transparent = true;
     const instance = mesh.instances[instanceId];
-    console.log(mesh.instances);
+    instance.visible = false;
     const obj: NodeType = {
       id: instance.uuid,
       type,
@@ -58,18 +58,17 @@ const InstanceMesh = ({ type }: InstanceMeshProps) => {
       quaternion: instance.quaternion.clone(),
       scale: instance.scale.clone(),
       color: "",
+      opacity: instance.opacity,
       instanceId,
     };
-
     selectInstances(obj);
-
-    // else if(event.ctrlKey){
-    //   toggleInstance()
-    // }
-    // else if(event.altKey){
-    //   deselectInstance()
-    // }
   };
+  useEffect(() => {
+    const mesh = ref.current;
+    return () => {
+      mesh.dispose();
+    };
+  }, []);
 
   return <instancedMesh2 ref={ref} args={args} onClick={(e) => onClick(e)} />;
 };

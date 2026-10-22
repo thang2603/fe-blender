@@ -7,6 +7,7 @@ export type NodeType = {
   quaternion: Quaternion;
   scale: Vector3;
   color: string;
+  opacity: number;
   instanceId: number;
 };
 
@@ -24,11 +25,9 @@ export type CanvasStore = {
   selectInstance: (instances: NodeType) => void;
   toggleInstance: (instance: NodeType) => void;
   deselectInstance: (instance: NodeType) => void;
+
   // deselectInstances: (instances: NodeType[]) => void;
   // clearSelection: () => void;
-
-  // transform
-  setIsTransform: (isTransfrom: boolean) => void;
 };
 
 export type ControlStore = {

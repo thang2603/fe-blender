@@ -24,7 +24,6 @@ const Grid = () => {
         sectionColor="#cccccc"
         fadeDistance={30}
         fadeStrength={1}
-        onPointerMove={() => console.log("move")}
       />
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}

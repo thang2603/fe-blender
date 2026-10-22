@@ -9,7 +9,7 @@ type InstaneMeshTransformProps = {
   instances: NodeType[];
   center: Vector3;
 };
-const count = 10;
+const count = 100;
 const InstaneMeshTransform = ({
   type,
   instances = [],
@@ -50,7 +50,6 @@ const InstaneMeshTransform = ({
       obj.position.set(...newPos.toArray());
       obj.scale.set(...item.scale.clone().toArray());
       obj.quaternion.set(...item.quaternion.clone().toArray());
-      obj.opacity = 0.3;
     });
 
     mesh.computeBVH();

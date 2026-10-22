@@ -1,6 +1,5 @@
 import type { InstancedMesh2 } from "@three.ez/instanced-mesh";
 import { useCallback, useEffect, type RefObject } from "react";
-import { Vector3 } from "three";
 import useCanvasStore from "../../stores/useCanvasStore";
 import useControlStore from "../../stores/useControlStore";
 import type { InstanceType } from "../../stores/type";
@@ -17,49 +16,40 @@ type ShortCutType = {
 };
 
 const useShortCut = ({ ref, type }: ShortCutType) => {
-  const mousePosition = useControlStore((state) => state.mousePosition);
-  const addInstances = useCanvasStore((state) => state.addInstances);
-  const setIsTransform = useCanvasStore((state) => state.setIsTransform);
-
-  const onAdd = useCallback(
-    (pos: Vector3 | null) => {
-      if (!Object.keys(addInstances).length) return;
-      const mesh = ref.current;
-      let data = addInstances?.[type];
-      if (!data) return;
-      if (!pos) return;
-      const instanceCount = mesh.instancesCount;
-      data = data.map((item) => ({ ...item, id: generateUniqueId() }));
-
-      mesh.addInstances(data.length, (obj, index) => {
-        const item = data[index - instanceCount];
-        const newPos = pos.add(item.position.clone());
-        obj.uuid = item.id;
-        obj.position.set(...newPos.clone().toArray());
-        obj.scale.set(...item.scale.clone().toArray());
-        obj.quaternion.set(...item.quaternion.clone().toArray());
-      });
-      mesh.computeBVH();
-      return () => {
-        mesh.dispose();
-      };
-    },
-    [ref, type, addInstances],
-  );
+  const onAdd = useCallback(() => {
+    const addInstances = useCanvasStore.getState().addInstances;
+    const mousePosition = useControlStore.getState().mousePosition;
+    if (!Object.keys(addInstances).length) return;
+    const mesh = ref.current;
+    let data = addInstances?.[type];
+    if (!data) return;
+    if (!mousePosition) return;
+    const instanceCount = mesh.instancesCount;
+    data = data.map((item) => ({ ...item, id: generateUniqueId() }));
+    mesh.addInstances(data.length, (obj, index) => {
+      const item = data[index - instanceCount];
+      const newPos = mousePosition.clone().add(item.position);
+      obj.uuid = item.id;
+      obj.position.set(...newPos.clone().toArray());
+      obj.scale.set(...item.scale.clone().toArray());
+      obj.quaternion.set(...item.quaternion.clone().toArray());
+    });
+    mesh.computeBVH();
+    return () => {
+      mesh.dispose();
+    };
+  }, [ref, type]);
 
   useEffect(() => {
     const handleKeyDown = async (event: KeyboardEvent) => {
       const key = event.key.toUpperCase();
       const ctrlKey = event.ctrlKey;
-      event.preventDefault();
-      event.stopPropagation();
       if (ctrlKey) {
+        event.preventDefault();
+        event.stopPropagation();
         switch (key) {
           case SHORT_CUT.ADD:
-            onAdd(mousePosition);
-            break;
-          case SHORT_CUT.TRANSFORM:
-            setIsTransform(true);
+            onAdd();
             break;
           default:
             break;
@@ -71,7 +61,7 @@ const useShortCut = ({ ref, type }: ShortCutType) => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [onAdd, setIsTransform, mousePosition]);
+  }, [onAdd]);
 
   return null;
 };
