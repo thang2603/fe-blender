@@ -13,29 +13,22 @@ export type NodeType = {
 
 export type InstanceType = {
   uuid: string;
+  oldPosition: Vector3;
 };
 
 export type TransformMode = "translate" | "rotate" | "scale" | undefined;
 export type CanvasStore = {
   addInstances: Record<string, NodeType[]>;
-  selected: Map<string, NodeType>;
-  transformSelected: Record<string, NodeType[]>;
   center: Vector3;
   setAddInstances: (addInstances: Record<string, NodeType[]>) => void;
-  //setlected
-  selectInstance: (instances: NodeType) => void;
-  toggleInstance: (instance: NodeType) => void;
-  deselectInstance: (instance: NodeType) => void;
-
-  // deselectInstances: (instances: NodeType[]) => void;
-  // clearSelection: () => void;
-
-  setInstanceByType: () => void;
+  setCenter: (center: Vector3) => void;
 };
 
 export type ControlStore = {
   mousePosition: Vector3 | null;
   isTransform: boolean;
+  triggerSelect: number;
   setMousePosition: (mousePosition: Vector3 | null) => void;
   setIsTransform: () => void;
+  setTriggerSelect: () => void;
 };

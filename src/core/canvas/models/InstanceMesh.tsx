@@ -3,22 +3,22 @@ import { BufferGeometry, Material } from "three";
 import { InstancedMesh2 } from "@three.ez/instanced-mesh";
 import "./extend";
 import { useGLTF } from "@react-three/drei";
-import type { InstanceType, NodeType } from "../../stores/type";
 import type { ThreeEvent } from "@react-three/fiber";
+import { useCanvasContext } from "../hooks/useCanvasContext";
+import type { InstanceType } from "../../stores/type";
 import useCanvasStore from "../../stores/useCanvasStore";
+import { INIT_POSITION } from "../constants/data";
 
 type InstanceMeshProps = {
   type: string;
+  indexMesh: number;
 };
 
 const count = 100;
-const InstanceMesh = ({ type }: InstanceMeshProps) => {
+const InstanceMesh = ({ type, indexMesh }: InstanceMeshProps) => {
   const { meshes, materials } = useGLTF(`/models/${type}.glb`);
-
-  const selectInstances = useCanvasStore((state) => state.selectInstance);
-  // const toggleInstance = useCanvasStore((state) => state.selectInstances);
-  // const deselectInstance = useCanvasStore((state) => state.selectInstances);
-
+  const { instancesRef, transformRef } = useCanvasContext();
+  const setCenter = useCanvasStore((state) => state.setCenter);
   const scene = useMemo(() => {
     if (!meshes || !materials) return null;
     return {
@@ -40,29 +40,51 @@ const InstanceMesh = ({ type }: InstanceMeshProps) => {
     [scene],
   );
 
+  const caculateCenter = () => {
+    const newCenter = INIT_POSITION.clone();
+    const length = transformRef.current.children.length;
+    let totalInstances = 0;
+    for (let i = 0; i < length; i++) {
+      const tempMesh = transformRef.current.children[
+        i
+      ] as InstancedMesh2<InstanceType>;
+      const lengthInstances = tempMesh?.instances?.length;
+      if (lengthInstances > 0) {
+        for (let j = 0; j < lengthInstances; j++) {
+          const pos = tempMesh.instances[j].position;
+          newCenter.add(pos);
+        }
+        totalInstances = totalInstances + lengthInstances;
+      }
+    }
+
+    setCenter(newCenter.divideScalar(totalInstances).clone());
+  };
+
   const onClick = (event: ThreeEvent<MouseEvent>) => {
     event.stopPropagation();
-    const mesh = event.object as unknown as InstancedMesh2<InstanceType>;
-    if (!mesh) return;
-
     const instanceId = event.instanceId;
     if (instanceId === undefined) return;
-    (mesh.material as Material).transparent = true;
+    const mesh = instancesRef.current.children[
+      indexMesh
+    ] as InstancedMesh2<InstanceType>;
+
+    const transformMesh = transformRef.current.children[
+      indexMesh
+    ] as InstancedMesh2<InstanceType>;
+    if (!mesh) return;
+
     const instance = mesh.instances[instanceId];
 
-    const obj: NodeType = {
-      id: instance.uuid,
-      type,
-      position: instance.position.clone(),
-      quaternion: instance.quaternion.clone(),
-      scale: instance.scale.clone(),
-      color: "",
-      opacity: instance.opacity,
-      instanceId,
-    };
-    instance.opacity = 0.2;
-    mesh.setVisibilityAt(instanceId, false);
-    selectInstances(obj);
+    mesh.removeInstances(instanceId);
+    transformMesh.addInstances(1, (obj) => {
+      obj.uuid = instance.uuid;
+      obj.position.set(...instance.position.clone().toArray());
+      obj.scale.set(...instance.scale.clone().toArray());
+      obj.quaternion.set(...instance.quaternion.clone().toArray());
+      obj.oldPosition = instance.position.clone();
+    });
+    caculateCenter();
   };
 
   return <instancedMesh2 args={args} onClick={(e) => onClick(e)} />;

@@ -36,8 +36,11 @@ const useShortCut = () => {
       ] as InstancedMesh2<InstanceType>;
       const instanceCount = mesh.instancesCount;
       const type = indexByType.get(i);
-      if (!type) return;
-      let data = addInstances[type];
+
+      if (!type) continue;
+      let data = addInstances?.[type];
+      if (!data) continue;
+
       data = data.map((item) => ({ ...item, id: generateUniqueId() }));
       mesh.addInstances(data.length, (obj, index) => {
         const item = data[index - instanceCount];
@@ -50,17 +53,6 @@ const useShortCut = () => {
       mesh.computeBVH();
     }
   }, [instancesRef, indexByType]);
-
-  // const onUpdateTransform = useCallback((type: string) => {
-  //   const isTransform = useControlStore.getState().isTransform;
-  //   const transformSelected = useCanvasStore.getState().transformSelected;
-  //   const instances = transformSelected[type];
-  //   if (isTransform) {
-  //     console.log("true");
-  //   } else {
-  //     console.log("false");
-  //   }
-  // }, []);
 
   useEffect(() => {
     const handleKeyDown = async (event: KeyboardEvent) => {

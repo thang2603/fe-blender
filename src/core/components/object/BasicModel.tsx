@@ -8,7 +8,7 @@ import useCanvasStore from "../../stores/useCanvasStore";
 const BasicModel = () => {
   const setAddInstances = useCanvasStore((state) => state.setAddInstances);
 
-  const handleCopy = async (type: string) => {
+  const handleCopy = (type: string) => {
     const obj = {
       ...INIT_INSTANCE_NODE,
       id: "1",
