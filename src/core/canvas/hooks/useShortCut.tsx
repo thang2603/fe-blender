@@ -1,44 +1,66 @@
-import type { InstancedMesh2 } from "@three.ez/instanced-mesh";
-import { useCallback, useEffect, type RefObject } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import useCanvasStore from "../../stores/useCanvasStore";
 import useControlStore from "../../stores/useControlStore";
-import type { InstanceType } from "../../stores/type";
 import { generateUniqueId } from "../utils/helper";
+import { useCanvasContext } from "./useCanvasContext";
+import type { InstancedMesh2 } from "@three.ez/instanced-mesh";
+import type { InstanceType } from "../../stores/type";
+import { INSTANCE_TYPES } from "../constants/data";
 
 const SHORT_CUT = {
   ADD: "V",
   TRANSFORM: "G",
 };
 
-type ShortCutType = {
-  ref: RefObject<InstancedMesh2<InstanceType>>;
-  type: string;
-};
+const useShortCut = () => {
+  const { instancesRef } = useCanvasContext();
+  const setIsTransform = useControlStore((state) => state.setIsTransform);
 
-const useShortCut = ({ ref, type }: ShortCutType) => {
+  const indexByType = useMemo(() => {
+    const res = new Map<number, string>();
+    INSTANCE_TYPES.forEach((item, index) => {
+      res.set(index, item.type);
+    });
+    return res;
+  }, []);
   const onAdd = useCallback(() => {
+    if (!instancesRef.current) return;
     const addInstances = useCanvasStore.getState().addInstances;
     const mousePosition = useControlStore.getState().mousePosition;
     if (!Object.keys(addInstances).length) return;
-    const mesh = ref.current;
-    let data = addInstances?.[type];
-    if (!data) return;
     if (!mousePosition) return;
-    const instanceCount = mesh.instancesCount;
-    data = data.map((item) => ({ ...item, id: generateUniqueId() }));
-    mesh.addInstances(data.length, (obj, index) => {
-      const item = data[index - instanceCount];
-      const newPos = mousePosition.clone().add(item.position);
-      obj.uuid = item.id;
-      obj.position.set(...newPos.clone().toArray());
-      obj.scale.set(...item.scale.clone().toArray());
-      obj.quaternion.set(...item.quaternion.clone().toArray());
-    });
-    mesh.computeBVH();
-    return () => {
-      mesh.dispose();
-    };
-  }, [ref, type]);
+    const length = instancesRef.current.children.length;
+    for (let i = 0; i < length; i++) {
+      const mesh = instancesRef.current.children[
+        i
+      ] as InstancedMesh2<InstanceType>;
+      const instanceCount = mesh.instancesCount;
+      const type = indexByType.get(i);
+      if (!type) return;
+      let data = addInstances[type];
+      data = data.map((item) => ({ ...item, id: generateUniqueId() }));
+      mesh.addInstances(data.length, (obj, index) => {
+        const item = data[index - instanceCount];
+        const newPos = mousePosition.clone().add(item.position);
+        obj.uuid = item.id;
+        obj.position.set(...newPos.clone().toArray());
+        obj.scale.set(...item.scale.clone().toArray());
+        obj.quaternion.set(...item.quaternion.clone().toArray());
+      });
+      mesh.computeBVH();
+    }
+  }, [instancesRef, indexByType]);
+
+  // const onUpdateTransform = useCallback((type: string) => {
+  //   const isTransform = useControlStore.getState().isTransform;
+  //   const transformSelected = useCanvasStore.getState().transformSelected;
+  //   const instances = transformSelected[type];
+  //   if (isTransform) {
+  //     console.log("true");
+  //   } else {
+  //     console.log("false");
+  //   }
+  // }, []);
 
   useEffect(() => {
     const handleKeyDown = async (event: KeyboardEvent) => {
@@ -51,6 +73,9 @@ const useShortCut = ({ ref, type }: ShortCutType) => {
           case SHORT_CUT.ADD:
             onAdd();
             break;
+          case SHORT_CUT.TRANSFORM:
+            setIsTransform();
+            break;
           default:
             break;
         }
@@ -61,7 +86,7 @@ const useShortCut = ({ ref, type }: ShortCutType) => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [onAdd]);
+  }, [onAdd, setIsTransform]);
 
   return null;
 };

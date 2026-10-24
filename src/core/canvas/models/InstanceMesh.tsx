@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { BufferGeometry, Material } from "three";
 import { InstancedMesh2 } from "@three.ez/instanced-mesh";
 import "./extend";
-import useShortCut from "../hooks/useShortCut";
 import { useGLTF } from "@react-three/drei";
 import type { InstanceType, NodeType } from "../../stores/type";
 import type { ThreeEvent } from "@react-three/fiber";
@@ -14,9 +13,8 @@ type InstanceMeshProps = {
 
 const count = 100;
 const InstanceMesh = ({ type }: InstanceMeshProps) => {
-  const ref = useRef<InstancedMesh2<InstanceType>>(null!);
   const { meshes, materials } = useGLTF(`/models/${type}.glb`);
-  useShortCut({ ref, type });
+
   const selectInstances = useCanvasStore((state) => state.selectInstance);
   // const toggleInstance = useCanvasStore((state) => state.selectInstances);
   // const deselectInstance = useCanvasStore((state) => state.selectInstances);
@@ -44,8 +42,9 @@ const InstanceMesh = ({ type }: InstanceMeshProps) => {
 
   const onClick = (event: ThreeEvent<MouseEvent>) => {
     event.stopPropagation();
-    const mesh = ref.current;
+    const mesh = event.object as unknown as InstancedMesh2<InstanceType>;
     if (!mesh) return;
+
     const instanceId = event.instanceId;
     if (instanceId === undefined) return;
     (mesh.material as Material).transparent = true;
@@ -61,19 +60,12 @@ const InstanceMesh = ({ type }: InstanceMeshProps) => {
       opacity: instance.opacity,
       instanceId,
     };
-    instance.scale.set(0, 0, 0);
+    instance.opacity = 0.2;
     mesh.setVisibilityAt(instanceId, false);
-    console.log(mesh);
     selectInstances(obj);
   };
-  useEffect(() => {
-    const mesh = ref.current;
-    return () => {
-      mesh.dispose();
-    };
-  }, []);
 
-  return <instancedMesh2 ref={ref} args={args} onClick={(e) => onClick(e)} />;
+  return <instancedMesh2 args={args} onClick={(e) => onClick(e)} />;
 };
 
 export default InstanceMesh;

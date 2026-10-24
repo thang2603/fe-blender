@@ -19,11 +19,8 @@ const useCanvasStore = create<CanvasStore>((set) => ({
     set((state) => {
       const newMap = new Map<string, NodeType>(state.selected);
       newMap.set(instance.id, instance);
-      const { center, data: transformSelected } = covertMapInstance(newMap);
       return {
         selected: newMap,
-        center,
-        transformSelected,
       };
     }),
   toggleInstance: (instance: NodeType) =>
@@ -45,6 +42,16 @@ const useCanvasStore = create<CanvasStore>((set) => ({
       newMap.delete(id);
       return {
         selected: newMap,
+      };
+    }),
+  setInstanceByType: () =>
+    set((state) => {
+      const { center, data: transformSelected } = covertMapInstance(
+        state.selected,
+      );
+      return {
+        center,
+        transformSelected,
       };
     }),
 }));

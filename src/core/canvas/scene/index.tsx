@@ -1,8 +1,7 @@
 import { OrbitControls, Stats } from "@react-three/drei";
-import Models from "../models/Models";
 import MouseTracker from "../controls/MouseTracker";
 import Grid from "../controls/Grid";
-import TransformControl from "../controls/transform-control";
+import ModelContainer from "../models";
 
 const Scene = () => {
   return (
@@ -14,10 +13,7 @@ const Scene = () => {
       <Stats />
       <Grid />
       <MouseTracker />
-      {/* instance */}
-      <Models />
-      {/* transform */}
-      <TransformControl />
+      <ModelContainer />
     </>
   );
 };

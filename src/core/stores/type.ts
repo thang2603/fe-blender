@@ -29,9 +29,13 @@ export type CanvasStore = {
 
   // deselectInstances: (instances: NodeType[]) => void;
   // clearSelection: () => void;
+
+  setInstanceByType: () => void;
 };
 
 export type ControlStore = {
   mousePosition: Vector3 | null;
+  isTransform: boolean;
   setMousePosition: (mousePosition: Vector3 | null) => void;
+  setIsTransform: () => void;
 };

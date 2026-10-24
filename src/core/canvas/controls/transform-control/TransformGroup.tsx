@@ -1,17 +1,18 @@
 import { TransformControls } from "@react-three/drei";
-import { useEffect, useRef, useState } from "react";
-import { Group } from "three";
+import { useEffect, useState } from "react";
+
 import InstaneMeshTransform from "./InstaneMeshTransform";
 import useCanvasStore from "../../../stores/useCanvasStore";
 import { type TransformMode } from "../../../stores/type";
+import { useCanvasContext } from "../../hooks/useCanvasContext";
 
 const KEY_MODE = {
   POSITION: "Q",
   ROTATION: "W",
   SCALE: "E",
 };
-const TransfromGroup = () => {
-  const groupRef = useRef<Group>(null!);
+const TransformGroup = () => {
+  const { transformRef } = useCanvasContext();
   const [mode, setMode] = useState<TransformMode>("translate");
 
   const center = useCanvasStore((state) => state.center);
@@ -42,11 +43,13 @@ const TransfromGroup = () => {
 
   return (
     <TransformControls
-      object={groupRef}
+      object={transformRef}
       mode={mode}
       enabled={!!transformSelected}
+      onMouseUp={() => console.log("up")}
+      onClick={(e) => e.stopPropagation()}
     >
-      <group ref={groupRef} position={center}>
+      <group ref={transformRef} position={center}>
         {Object.entries(transformSelected).map(([type, instances]) => (
           <InstaneMeshTransform
             type={type}
@@ -60,4 +63,4 @@ const TransfromGroup = () => {
   );
 };
 
-export default TransfromGroup;
+export default TransformGroup;

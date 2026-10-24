@@ -1,18 +1,17 @@
 import InstanceMesh from "./InstanceMesh";
-
-const instanceTypes = [
-  {
-    type: "cube",
-  },
-  {
-    type: "sphere",
-  },
-];
+import { useCanvasContext } from "../hooks/useCanvasContext";
+import { INSTANCE_TYPES } from "../constants/data";
 
 const Models = () => {
-  return instanceTypes.map((instanceType) => (
-    <InstanceMesh key={instanceType.type} type={instanceType.type} />
-  ));
+  const { instancesRef } = useCanvasContext();
+
+  return (
+    <group ref={instancesRef} onClick={() => console.log(instancesRef)}>
+      {INSTANCE_TYPES.map((instanceType) => (
+        <InstanceMesh key={instanceType.type} type={instanceType.type} />
+      ))}
+    </group>
+  );
 };
 
 export default Models;

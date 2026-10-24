@@ -4,8 +4,7 @@ import type { ThreeEvent } from "@react-three/fiber";
 
 const Grid = () => {
   const setMousePosition = useControlStore((state) => state.setMousePosition);
-
-  const onPointerDown = (e: ThreeEvent<PointerEvent>) => {
+  const onDoubleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
     const point = e.point.clone();
     setMousePosition(point);
@@ -28,7 +27,7 @@ const Grid = () => {
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         position={[0, -0.01, 0]} // Đặt thấp hơn grid một chút để tránh xung đột z-index
-        onPointerDown={(e) => onPointerDown(e)}
+        onClick={(e) => onDoubleClick(e)}
       >
         <planeGeometry args={[100, 100]} />
         <meshBasicMaterial visible={false} />
