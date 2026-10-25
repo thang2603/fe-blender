@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { BufferGeometry, Material } from "three";
+import { BufferGeometry, Material, Vector3 } from "three";
 import { InstancedMesh2 } from "@three.ez/instanced-mesh";
 import "./extend";
 import { useGLTF } from "@react-three/drei";
@@ -51,14 +51,31 @@ const InstanceMesh = ({ type, indexMesh }: InstanceMeshProps) => {
       const lengthInstances = tempMesh?.instances?.length;
       if (lengthInstances > 0) {
         for (let j = 0; j < lengthInstances; j++) {
-          const pos = tempMesh.instances[j].position;
+          const pos = tempMesh.instances[j].oldPosition;
           newCenter.add(pos);
         }
         totalInstances = totalInstances + lengthInstances;
       }
     }
+    return newCenter.clone().divideScalar(totalInstances);
+  };
 
-    setCenter(newCenter.divideScalar(totalInstances).clone());
+  const updateTransform = (center: Vector3) => {
+    if (!transformRef.current) return;
+    const length = transformRef?.current?.children?.length;
+    for (let i = 0; i < length; i++) {
+      const tempMesh = transformRef.current.children[
+        i
+      ] as InstancedMesh2<InstanceType>;
+      const lengthInstances = tempMesh?.instances?.length;
+      if (lengthInstances > 0) {
+        tempMesh.updateInstances((obj) => {
+          const newPos = obj.oldPosition.clone().sub(center);
+          obj.position.set(...newPos.toArray());
+          obj.visible = true;
+        });
+      }
+    }
   };
 
   const onClick = (event: ThreeEvent<MouseEvent>) => {
@@ -83,8 +100,11 @@ const InstanceMesh = ({ type, indexMesh }: InstanceMeshProps) => {
       obj.scale.set(...instance.scale.clone().toArray());
       obj.quaternion.set(...instance.quaternion.clone().toArray());
       obj.oldPosition = instance.position.clone();
+      obj.visible = false;
     });
-    caculateCenter();
+    const newCenter = caculateCenter();
+    setCenter(newCenter);
+    updateTransform(newCenter);
   };
 
   return <instancedMesh2 args={args} onClick={(e) => onClick(e)} />;

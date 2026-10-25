@@ -34,7 +34,7 @@ const useShortCut = () => {
       const mesh = instancesRef.current.children[
         i
       ] as InstancedMesh2<InstanceType>;
-      const instanceCount = mesh.instancesCount;
+
       const type = indexByType.get(i);
 
       if (!type) continue;
@@ -42,13 +42,16 @@ const useShortCut = () => {
       if (!data) continue;
 
       data = data.map((item) => ({ ...item, id: generateUniqueId() }));
-      mesh.addInstances(data.length, (obj, index) => {
-        const item = data[index - instanceCount];
+      let index = 0;
+      mesh.addInstances(data.length, (obj) => {
+        const item = data[index];
+
         const newPos = mousePosition.clone().add(item.position);
         obj.uuid = item.id;
         obj.position.set(...newPos.clone().toArray());
         obj.scale.set(...item.scale.clone().toArray());
         obj.quaternion.set(...item.quaternion.clone().toArray());
+        index++;
       });
       mesh.computeBVH();
     }
