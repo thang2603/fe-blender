@@ -45,7 +45,6 @@ const useShortCut = () => {
       let index = 0;
       mesh.addInstances(data.length, (obj) => {
         const item = data[index];
-
         const newPos = mousePosition.clone().add(item.position);
         obj.uuid = item.id;
         obj.position.set(...newPos.clone().toArray());

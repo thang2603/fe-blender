@@ -70,8 +70,7 @@ const InstanceMesh = ({ type, indexMesh }: InstanceMeshProps) => {
       const lengthInstances = tempMesh?.instances?.length;
       if (lengthInstances > 0) {
         tempMesh.updateInstances((obj) => {
-          const newPos = obj.oldPosition.clone().sub(center);
-          obj.position.set(...newPos.toArray());
+          obj.position.copy(obj.oldPosition).sub(center);
           obj.visible = true;
         });
       }
@@ -82,6 +81,36 @@ const InstanceMesh = ({ type, indexMesh }: InstanceMeshProps) => {
     event.stopPropagation();
     const instanceId = event.instanceId;
     if (instanceId === undefined) return;
+
+    if (event.shiftKey) {
+      console.log(1);
+    } else {
+      const length = transformRef?.current?.children?.length;
+      for (let i = 0; i < length; i++) {
+        const transformMeshTemp = transformRef.current.children[
+          i
+        ] as InstancedMesh2<InstanceType>;
+        const instanceMeshTemp = instancesRef.current.children[
+          i
+        ] as InstancedMesh2<InstanceType>;
+        const count = transformMeshTemp?.instances?.length;
+        if (count > 0) {
+          let index = 0;
+          instanceMeshTemp.addInstances(count, (obj) => {
+            const item = transformMeshTemp.instances[index];
+            obj.uuid = item.uuid;
+            obj.position.set(...item.oldPosition.clone().toArray());
+            obj.scale.set(...item.scale.clone().toArray());
+            obj.quaternion.set(...item.quaternion.clone().toArray());
+            obj.color = "red";
+            index++;
+          });
+        }
+        transformMeshTemp.clearInstances();
+      }
+    }
+
+    //
     const mesh = instancesRef.current.children[
       indexMesh
     ] as InstancedMesh2<InstanceType>;
@@ -92,7 +121,6 @@ const InstanceMesh = ({ type, indexMesh }: InstanceMeshProps) => {
     if (!mesh) return;
 
     const instance = mesh.instances[instanceId];
-
     mesh.removeInstances(instanceId);
     transformMesh.addInstances(1, (obj) => {
       obj.uuid = instance.uuid;
@@ -102,7 +130,8 @@ const InstanceMesh = ({ type, indexMesh }: InstanceMeshProps) => {
       obj.oldPosition = instance.position.clone();
       obj.visible = false;
     });
-    const newCenter = caculateCenter();
+    const newCenter = caculateCenter().clone();
+    console.log(newCenter);
     setCenter(newCenter);
     updateTransform(newCenter);
   };
