@@ -7,7 +7,7 @@ import type { ThreeEvent } from "@react-three/fiber";
 import { useCanvasContext } from "../hooks/useCanvasContext";
 import type { InstanceType } from "../../stores/type";
 import useCanvasStore from "../../stores/useCanvasStore";
-import { INIT_POSITION } from "../constants/data";
+import { INIT_POSITION, INSTANCE_TYPES } from "../constants/data";
 
 type InstanceMeshProps = {
   type: string;
@@ -42,33 +42,59 @@ const InstanceMesh = ({ type, indexMesh }: InstanceMeshProps) => {
 
   const caculateCenter = () => {
     const newCenter = INIT_POSITION.clone();
-    const length = transformRef.current.children.length;
+    const length = INSTANCE_TYPES.length;
     let totalInstances = 0;
     for (let i = 0; i < length; i++) {
-      const tempMesh = transformRef.current.children[
+      const mesh = transformRef.current.children[
         i
       ] as InstancedMesh2<InstanceType>;
-      const lengthInstances = tempMesh?.instancesCount;
+      const lengthInstances = mesh?.instancesCount;
       for (let j = 0; j < lengthInstances; j++) {
-        const pos = tempMesh.instances[j].oldPosition;
+        const pos = mesh.instances[j].oldPosition;
         newCenter.add(pos);
       }
       totalInstances = totalInstances + lengthInstances;
     }
-    return newCenter.clone().divideScalar(totalInstances);
+    return newCenter.divideScalar(totalInstances).clone();
   };
 
   const updateTransform = (center: Vector3) => {
     if (!transformRef.current) return;
     const length = transformRef?.current?.children?.length;
     for (let i = 0; i < length; i++) {
-      const tempMesh = transformRef.current.children[
+      const mesh = transformRef.current.children[
         i
       ] as InstancedMesh2<InstanceType>;
-      tempMesh.updateInstances((obj) => {
+      mesh.updateInstances((obj) => {
         obj.position.copy(obj.oldPosition).sub(center);
         obj.visible = true;
       });
+      mesh.computeBVH();
+    }
+  };
+
+  const clearInstanceTransform = () => {
+    const length = INSTANCE_TYPES.length;
+    for (let i = 0; i < length; i++) {
+      const transformMesh = transformRef.current.children[
+        i
+      ] as InstancedMesh2<InstanceType>;
+      const instanceMesh = instancesRef.current.children[
+        i
+      ] as InstancedMesh2<InstanceType>;
+      const count = transformMesh.instancesCount;
+      if (count > 0) {
+        let index = 0;
+        instanceMesh.addInstances(count, (obj) => {
+          const item = transformMesh.instances[index];
+          obj.uuid = item.uuid;
+          obj.position.set(...item.oldPosition.clone().toArray());
+          obj.scale.set(...item.scale.clone().toArray());
+          obj.quaternion.set(...item.quaternion.clone().toArray());
+          index++;
+        });
+      }
+      transformMesh.clearInstances();
     }
   };
 
@@ -76,36 +102,10 @@ const InstanceMesh = ({ type, indexMesh }: InstanceMeshProps) => {
     event.stopPropagation();
     const instanceId = event.instanceId;
     if (instanceId === undefined) return;
-
-    if (event.shiftKey) {
-      console.log(1);
-    } else {
-      const length = transformRef?.current?.children?.length;
-      for (let i = 0; i < length; i++) {
-        const transformMeshTemp = transformRef.current.children[
-          i
-        ] as InstancedMesh2<InstanceType>;
-        const instanceMeshTemp = instancesRef.current.children[
-          i
-        ] as InstancedMesh2<InstanceType>;
-        const count = transformMeshTemp.instancesCount;
-        if (count > 0) {
-          let index = 0;
-          instanceMeshTemp.addInstances(count, (obj) => {
-            const item = transformMeshTemp.instances[index];
-            obj.uuid = item.uuid;
-            obj.position.set(...item.oldPosition.clone().toArray());
-            obj.scale.set(...item.scale.clone().toArray());
-            obj.quaternion.set(...item.quaternion.clone().toArray());
-            obj.color = "red";
-            index++;
-          });
-        }
-        transformMeshTemp.clearInstances();
-      }
+    if (!event.shiftKey) {
+      clearInstanceTransform();
     }
 
-    //
     const mesh = instancesRef.current.children[
       indexMesh
     ] as InstancedMesh2<InstanceType>;

@@ -40,17 +40,13 @@ const TransformGroup = () => {
   }, []);
 
   return (
-    <TransformControls
-      object={transformRef}
-      mode={mode}
-      onMouseUp={() => console.log("up")}
-      onClick={(e) => e.stopPropagation()}
-    >
+    <TransformControls object={transformRef} mode={mode}>
       <group ref={transformRef} position={center}>
-        {INSTANCE_TYPES.map((item) => (
+        {INSTANCE_TYPES.map((item, index) => (
           <InstaneMeshTransform
             type={item.type}
             key={`${item.type}_tranfrom`}
+            indexMesh={index}
           />
         ))}
       </group>
