@@ -48,14 +48,12 @@ const InstanceMesh = ({ type, indexMesh }: InstanceMeshProps) => {
       const tempMesh = transformRef.current.children[
         i
       ] as InstancedMesh2<InstanceType>;
-      const lengthInstances = tempMesh?.instances?.length;
-      if (lengthInstances > 0) {
-        for (let j = 0; j < lengthInstances; j++) {
-          const pos = tempMesh.instances[j].oldPosition;
-          newCenter.add(pos);
-        }
-        totalInstances = totalInstances + lengthInstances;
+      const lengthInstances = tempMesh?.instancesCount;
+      for (let j = 0; j < lengthInstances; j++) {
+        const pos = tempMesh.instances[j].oldPosition;
+        newCenter.add(pos);
       }
+      totalInstances = totalInstances + lengthInstances;
     }
     return newCenter.clone().divideScalar(totalInstances);
   };
@@ -67,13 +65,10 @@ const InstanceMesh = ({ type, indexMesh }: InstanceMeshProps) => {
       const tempMesh = transformRef.current.children[
         i
       ] as InstancedMesh2<InstanceType>;
-      const lengthInstances = tempMesh?.instances?.length;
-      if (lengthInstances > 0) {
-        tempMesh.updateInstances((obj) => {
-          obj.position.copy(obj.oldPosition).sub(center);
-          obj.visible = true;
-        });
-      }
+      tempMesh.updateInstances((obj) => {
+        obj.position.copy(obj.oldPosition).sub(center);
+        obj.visible = true;
+      });
     }
   };
 
@@ -93,7 +88,7 @@ const InstanceMesh = ({ type, indexMesh }: InstanceMeshProps) => {
         const instanceMeshTemp = instancesRef.current.children[
           i
         ] as InstancedMesh2<InstanceType>;
-        const count = transformMeshTemp?.instances?.length;
+        const count = transformMeshTemp.instancesCount;
         if (count > 0) {
           let index = 0;
           instanceMeshTemp.addInstances(count, (obj) => {
@@ -131,7 +126,6 @@ const InstanceMesh = ({ type, indexMesh }: InstanceMeshProps) => {
       obj.visible = false;
     });
     const newCenter = caculateCenter().clone();
-    console.log(newCenter);
     setCenter(newCenter);
     updateTransform(newCenter);
   };
