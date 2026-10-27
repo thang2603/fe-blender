@@ -13,7 +13,6 @@ export type NodeType = {
 
 export type InstanceType = {
   uuid: string;
-  oldPosition: Vector3;
 };
 
 export type TransformMode = "translate" | "rotate" | "scale" | undefined;

@@ -2,11 +2,11 @@ import { useGLTF } from "@react-three/drei";
 import type { InstancedMesh2 } from "@three.ez/instanced-mesh";
 import { useMemo } from "react";
 import type { BufferGeometry, Material, Vector3 } from "three";
-import type { InstanceType } from "../../../stores/type";
-import type { ThreeEvent } from "@react-three/fiber";
-import { useCanvasContext } from "../../hooks/useCanvasContext";
-import useCanvasStore from "../../../stores/useCanvasStore";
 import { INIT_POSITION, INSTANCE_TYPES } from "../../constants/data";
+import useCanvasStore from "../../../stores/useCanvasStore";
+import type { InstanceType } from "../../../stores/type";
+import { useCanvasContext } from "../../hooks/useCanvasContext";
+import type { ThreeEvent } from "@react-three/fiber";
 
 type InstaneMeshTransformProps = {
   type: string;
@@ -18,10 +18,8 @@ const InstaneMeshTransform = ({
   indexMesh,
 }: InstaneMeshTransformProps) => {
   const { meshes, materials } = useGLTF(`/models/${type}.glb`);
-
   const { instancesRef, transformRef } = useCanvasContext();
   const setCenter = useCanvasStore((state) => state.setCenter);
-
   const scene = useMemo(() => {
     if (!meshes || !materials) return null;
     return {
@@ -46,14 +44,16 @@ const InstaneMeshTransform = ({
   const caculateCenter = () => {
     const newCenter = INIT_POSITION.clone();
     const length = INSTANCE_TYPES.length;
+    const oldCenter = useCanvasStore.getState().center;
     let totalInstances = 0;
     for (let i = 0; i < length; i++) {
       const mesh = transformRef.current.children[
         i
       ] as InstancedMesh2<InstanceType>;
       const lengthInstances = mesh?.instancesCount;
+
       for (let j = 0; j < lengthInstances; j++) {
-        const pos = mesh.instances[j].oldPosition;
+        const pos = mesh.instances[j].position.clone().add(oldCenter);
         newCenter.add(pos);
       }
       totalInstances = totalInstances + lengthInstances;
@@ -63,21 +63,24 @@ const InstaneMeshTransform = ({
 
   const updateTransform = (center: Vector3) => {
     if (!transformRef.current) return;
+    const oldCenter = useCanvasStore.getState().center;
     const length = transformRef?.current?.children?.length;
     for (let i = 0; i < length; i++) {
       const mesh = transformRef.current.children[
         i
       ] as InstancedMesh2<InstanceType>;
       mesh.updateInstances((obj) => {
-        obj.position.copy(obj.oldPosition).sub(center);
+        obj.position.copy(obj.position.clone().add(oldCenter).sub(center));
         obj.visible = true;
       });
       mesh.computeBVH();
     }
+    setCenter(center);
   };
 
   const clearInstanceTransform = () => {
     const length = INSTANCE_TYPES.length;
+    const oldCenter = useCanvasStore.getState().center;
     for (let i = 0; i < length; i++) {
       const transformMesh = transformRef.current.children[
         i
@@ -91,49 +94,51 @@ const InstaneMeshTransform = ({
         instanceMesh.addInstances(count, (obj) => {
           const item = transformMesh.instances[index];
           obj.uuid = item.uuid;
-          obj.position.set(...item.oldPosition.clone().toArray());
-          obj.scale.set(...item.scale.clone().toArray());
-          obj.quaternion.set(...item.quaternion.clone().toArray());
+          obj.position.copy(item.position.clone().add(oldCenter));
+          obj.scale.copy(item.scale.clone());
+          obj.quaternion.copy(item.quaternion.clone());
           index++;
         });
+        transformMesh.clearInstances();
       }
-      transformMesh.clearInstances();
     }
   };
 
   const onClick = (event: ThreeEvent<MouseEvent>) => {
-    console.log("select");
     event.stopPropagation();
     const instanceId = event.instanceId;
     if (instanceId === undefined) return;
     const mesh = instancesRef.current.children[
       indexMesh
     ] as InstancedMesh2<InstanceType>;
-
     const transformMesh = transformRef.current.children[
       indexMesh
     ] as InstancedMesh2<InstanceType>;
-    if (!mesh) return;
+    const oldCenter = useCanvasStore.getState().center;
     const instance = transformMesh.instances[instanceId];
-    if (!event.shiftKey) {
+    transformMesh.removeInstances(instanceId);
+    if (event.shiftKey) {
+      mesh.addInstances(1, (obj) => {
+        obj.uuid = instance.uuid;
+        obj.position.copy(instance.position.clone().add(oldCenter));
+        obj.scale.copy(instance.scale.clone());
+        obj.quaternion.copy(instance.quaternion.clone());
+        obj.visible = true;
+      });
+    } else {
       clearInstanceTransform();
 
       transformMesh.addInstances(1, (obj) => {
         obj.uuid = instance.uuid;
-        obj.position.set(...instance.oldPosition.clone().toArray());
-        obj.scale.set(...instance.scale.clone().toArray());
-        obj.quaternion.set(...instance.quaternion.clone().toArray());
-        obj.oldPosition = instance.position.clone();
+        obj.position.copy(instance.position.clone());
+        obj.scale.copy(instance.scale.clone());
+        obj.quaternion.copy(instance.quaternion.clone());
         obj.visible = false;
       });
-      mesh.removeInstances(instanceId);
-    } else {
-      console.log("shift");
     }
 
     const newCenter = caculateCenter().clone();
     updateTransform(newCenter);
-    setCenter(newCenter);
   };
 
   return <instancedMesh2 args={args} onClick={(e) => onClick(e)} />;

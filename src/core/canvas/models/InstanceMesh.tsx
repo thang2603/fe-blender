@@ -43,6 +43,7 @@ const InstanceMesh = ({ type, indexMesh }: InstanceMeshProps) => {
   const caculateCenter = () => {
     const newCenter = INIT_POSITION.clone();
     const length = INSTANCE_TYPES.length;
+    const oldCenter = useCanvasStore.getState().center;
     let totalInstances = 0;
     for (let i = 0; i < length; i++) {
       const mesh = transformRef.current.children[
@@ -50,7 +51,7 @@ const InstanceMesh = ({ type, indexMesh }: InstanceMeshProps) => {
       ] as InstancedMesh2<InstanceType>;
       const lengthInstances = mesh?.instancesCount;
       for (let j = 0; j < lengthInstances; j++) {
-        const pos = mesh.instances[j].oldPosition;
+        const pos = mesh.instances[j].position.clone().add(oldCenter);
         newCenter.add(pos);
       }
       totalInstances = totalInstances + lengthInstances;
@@ -60,21 +61,24 @@ const InstanceMesh = ({ type, indexMesh }: InstanceMeshProps) => {
 
   const updateTransform = (center: Vector3) => {
     if (!transformRef.current) return;
+    const oldCenter = useCanvasStore.getState().center;
     const length = transformRef?.current?.children?.length;
     for (let i = 0; i < length; i++) {
       const mesh = transformRef.current.children[
         i
       ] as InstancedMesh2<InstanceType>;
       mesh.updateInstances((obj) => {
-        obj.position.copy(obj.oldPosition).sub(center);
+        obj.position.copy(obj.position.clone().add(oldCenter).sub(center));
         obj.visible = true;
       });
       mesh.computeBVH();
     }
+    setCenter(center);
   };
 
   const clearInstanceTransform = () => {
     const length = INSTANCE_TYPES.length;
+    const oldCenter = useCanvasStore.getState().center;
     for (let i = 0; i < length; i++) {
       const transformMesh = transformRef.current.children[
         i
@@ -88,9 +92,9 @@ const InstanceMesh = ({ type, indexMesh }: InstanceMeshProps) => {
         instanceMesh.addInstances(count, (obj) => {
           const item = transformMesh.instances[index];
           obj.uuid = item.uuid;
-          obj.position.set(...item.oldPosition.clone().toArray());
-          obj.scale.set(...item.scale.clone().toArray());
-          obj.quaternion.set(...item.quaternion.clone().toArray());
+          obj.position.copy(item.position.clone().add(oldCenter));
+          obj.scale.copy(item.scale.clone());
+          obj.quaternion.copy(item.quaternion.clone());
           index++;
         });
       }
@@ -115,18 +119,18 @@ const InstanceMesh = ({ type, indexMesh }: InstanceMeshProps) => {
     ] as InstancedMesh2<InstanceType>;
     if (!mesh) return;
 
+    const oldCenter = useCanvasStore.getState().center;
+    console.log(oldCenter);
     const instance = mesh.instances[instanceId];
     mesh.removeInstances(instanceId);
     transformMesh.addInstances(1, (obj) => {
       obj.uuid = instance.uuid;
-      obj.position.set(...instance.position.clone().toArray());
-      obj.scale.set(...instance.scale.clone().toArray());
-      obj.quaternion.set(...instance.quaternion.clone().toArray());
-      obj.oldPosition = instance.position.clone();
+      obj.position.copy(instance.position.clone().sub(oldCenter));
+      obj.scale.copy(instance.scale.clone());
+      obj.quaternion.copy(instance.quaternion.clone());
       obj.visible = false;
     });
     const newCenter = caculateCenter().clone();
-    setCenter(newCenter);
     updateTransform(newCenter);
   };
 
