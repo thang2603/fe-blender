@@ -1,5 +1,5 @@
-import TransformGroup from "../controls/transform-control/TransformGroup";
 import Models from "./Models";
+import TransformGroup from "./TransformGroup";
 
 const ModelContainer = () => {
   return (

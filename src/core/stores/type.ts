@@ -18,9 +18,8 @@ export type InstanceType = {
 export type TransformMode = "translate" | "rotate" | "scale" | undefined;
 export type CanvasStore = {
   addInstances: Record<string, NodeType[]>;
-  center: Vector3;
+
   setAddInstances: (addInstances: Record<string, NodeType[]>) => void;
-  setCenter: (center: Vector3) => void;
 };
 
 export type ControlStore = {

@@ -1,10 +1,9 @@
 import { TransformControls } from "@react-three/drei";
 import { useEffect, useState } from "react";
 import InstaneMeshTransform from "./InstaneMeshTransform";
-import { type TransformMode } from "../../../stores/type";
-import { useCanvasContext } from "../../hooks/useCanvasContext";
-import { INSTANCE_TYPES } from "../../constants/data";
-import useCanvasStore from "../../../stores/useCanvasStore";
+import { useCanvasContext } from "../hooks/useCanvasContext";
+import type { TransformMode } from "../../stores/type";
+import { INSTANCE_TYPES } from "../constants/data";
 
 const KEY_MODE = {
   POSITION: "Q",
@@ -14,7 +13,7 @@ const KEY_MODE = {
 const TransformGroup = () => {
   const { transformRef } = useCanvasContext();
   const [mode, setMode] = useState<TransformMode>("translate");
-  const center = useCanvasStore((state) => state.center);
+  // const center = useCanvasStore((state) => state.center);
 
   useEffect(() => {
     const handleKeyDonw = (event: KeyboardEvent) => {
@@ -41,7 +40,7 @@ const TransformGroup = () => {
 
   return (
     <TransformControls object={transformRef} mode={mode}>
-      <group ref={transformRef} position={center}>
+      <group ref={transformRef}>
         {INSTANCE_TYPES.map((item, index) => (
           <InstaneMeshTransform
             type={item.type}
