@@ -21,12 +21,3 @@ export type CanvasStore = {
 
   setAddInstances: (addInstances: Record<string, NodeType[]>) => void;
 };
-
-export type ControlStore = {
-  mousePosition: Vector3 | null;
-  isTransform: boolean;
-  triggerSelect: number;
-  setMousePosition: (mousePosition: Vector3 | null) => void;
-  setIsTransform: () => void;
-  setTriggerSelect: () => void;
-};

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo } from "react";
 import useCanvasStore from "../../stores/useCanvasStore";
-import useControlStore from "../../stores/useControlStore";
 import { generateUniqueId } from "../utils/helper";
 import { useCanvasContext } from "./useCanvasContext";
 import type { InstancedMesh2 } from "@three.ez/instanced-mesh";
@@ -9,12 +8,10 @@ import { INSTANCE_TYPES } from "../constants/data";
 
 const SHORT_CUT = {
   ADD: "V",
-  TRANSFORM: "G",
 };
 
 const useShortCut = () => {
-  const { instancesRef } = useCanvasContext();
-  const setIsTransform = useControlStore((state) => state.setIsTransform);
+  const { instancesRef, mousePositionRef } = useCanvasContext();
 
   const indexByType = useMemo(() => {
     const res = new Map<number, string>();
@@ -23,10 +20,11 @@ const useShortCut = () => {
     });
     return res;
   }, []);
+
   const onAdd = useCallback(() => {
     if (!instancesRef.current) return;
     const addInstances = useCanvasStore.getState().addInstances;
-    const mousePosition = useControlStore.getState().mousePosition;
+    const mousePosition = mousePositionRef.current;
     if (!Object.keys(addInstances).length) return;
     if (!mousePosition) return;
     const length = instancesRef.current.children.length;
@@ -54,7 +52,7 @@ const useShortCut = () => {
       });
       mesh.computeBVH();
     }
-  }, [instancesRef, indexByType]);
+  }, [instancesRef, indexByType, mousePositionRef]);
 
   useEffect(() => {
     const handleKeyDown = async (event: KeyboardEvent) => {
@@ -67,9 +65,6 @@ const useShortCut = () => {
           case SHORT_CUT.ADD:
             onAdd();
             break;
-          case SHORT_CUT.TRANSFORM:
-            setIsTransform();
-            break;
           default:
             break;
         }
@@ -80,7 +75,7 @@ const useShortCut = () => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [onAdd, setIsTransform]);
+  }, [onAdd]);
 
   return null;
 };

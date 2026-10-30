@@ -1,5 +1,4 @@
 import { OrbitControls, Stats } from "@react-three/drei";
-import MouseTracker from "../controls/MouseTracker";
 import Grid from "../controls/Grid";
 import ModelContainer from "../models";
 
@@ -12,7 +11,6 @@ const Scene = () => {
       <axesHelper args={[40]} />
       <Stats />
       <Grid />
-      <MouseTracker />
       <ModelContainer />
     </>
   );
