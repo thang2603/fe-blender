@@ -28,7 +28,6 @@ export const CanvasProvider = ({ children }: CanvasProviderType) => {
     () => ({
       transformRef,
       instancesRef,
-
       mousePositionRef,
     }),
     [],

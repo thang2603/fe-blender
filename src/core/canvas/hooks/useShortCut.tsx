@@ -1,17 +1,21 @@
-import { useCallback, useEffect, useMemo } from "react";
-import useCanvasStore from "../../stores/useCanvasStore";
-import { generateUniqueId } from "../utils/helper";
+import { useEffect, useMemo } from "react";
+
 import { useCanvasContext } from "./useCanvasContext";
-import type { InstancedMesh2 } from "@three.ez/instanced-mesh";
-import type { InstanceType } from "../../stores/type";
 import { INSTANCE_TYPES } from "../constants/data";
+import {
+  addInstances,
+  deselectAll,
+  selectAll,
+} from "../utils/instanceSelection";
 
 const SHORT_CUT = {
   ADD: "V",
+  SELECT_ALL: "A",
+  DESELECT_ALL: "ESCAPE",
 };
 
 const useShortCut = () => {
-  const { instancesRef, mousePositionRef } = useCanvasContext();
+  const { instancesRef, transformRef, mousePositionRef } = useCanvasContext();
 
   const indexByType = useMemo(() => {
     const res = new Map<number, string>();
@@ -21,49 +25,30 @@ const useShortCut = () => {
     return res;
   }, []);
 
-  const onAdd = useCallback(() => {
-    if (!instancesRef.current) return;
-    const addInstances = useCanvasStore.getState().addInstances;
-    const mousePosition = mousePositionRef.current;
-    if (!Object.keys(addInstances).length) return;
-    if (!mousePosition) return;
-    const length = instancesRef.current.children.length;
-    for (let i = 0; i < length; i++) {
-      const mesh = instancesRef.current.children[
-        i
-      ] as InstancedMesh2<InstanceType>;
-
-      const type = indexByType.get(i);
-
-      if (!type) continue;
-      let data = addInstances?.[type];
-      if (!data) continue;
-
-      data = data.map((item) => ({ ...item, id: generateUniqueId() }));
-      let index = 0;
-      mesh.addInstances(data.length, (obj) => {
-        const item = data[index];
-        const newPos = mousePosition.clone().add(item.position);
-        obj.uuid = item.id;
-        obj.position.set(...newPos.clone().toArray());
-        obj.scale.set(...item.scale.clone().toArray());
-        obj.quaternion.set(...item.quaternion.clone().toArray());
-        index++;
-      });
-      mesh.computeBVH();
-    }
-  }, [instancesRef, indexByType, mousePositionRef]);
-
   useEffect(() => {
     const handleKeyDown = async (event: KeyboardEvent) => {
       const key = event.key.toUpperCase();
       const ctrlKey = event.ctrlKey;
+      const instancesGroup = instancesRef.current;
+      const transformGroup = transformRef.current;
       if (ctrlKey) {
         event.preventDefault();
         event.stopPropagation();
         switch (key) {
           case SHORT_CUT.ADD:
-            onAdd();
+            addInstances(instancesGroup, mousePositionRef.current, indexByType);
+            break;
+          case SHORT_CUT.SELECT_ALL:
+            selectAll(transformGroup, instancesGroup);
+            break;
+
+          default:
+            break;
+        }
+      } else {
+        switch (key) {
+          case SHORT_CUT.DESELECT_ALL:
+            deselectAll(transformGroup, instancesGroup);
             break;
           default:
             break;
@@ -75,7 +60,7 @@ const useShortCut = () => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [onAdd]);
+  }, [mousePositionRef, indexByType, transformRef, instancesRef]);
 
   return null;
 };
