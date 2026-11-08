@@ -2,11 +2,7 @@ import { useEffect, useMemo } from "react";
 
 import { useCanvasContext } from "./useCanvasContext";
 import { INSTANCE_TYPES } from "../constants/data";
-import {
-  addInstances,
-  deselectAll,
-  selectAll,
-} from "../utils/instanceSelection";
+import { addInstances } from "../utils/instanceSelection";
 
 const SHORT_CUT = {
   ADD: "V",
@@ -39,16 +35,15 @@ const useShortCut = () => {
             addInstances(instancesGroup, mousePositionRef.current, indexByType);
             break;
           case SHORT_CUT.SELECT_ALL:
-            selectAll(transformGroup, instancesGroup);
+            // selectAll(transformGroup, instancesGroup);
             break;
-
           default:
             break;
         }
       } else {
         switch (key) {
           case SHORT_CUT.DESELECT_ALL:
-            deselectAll(transformGroup, instancesGroup);
+            // deselectAll(transformGroup, instancesGroup);
             break;
           default:
             break;

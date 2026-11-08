@@ -4,6 +4,8 @@ import InstaneMeshTransform from "./InstaneMeshTransform";
 import { useCanvasContext } from "../hooks/useCanvasContext";
 import type { TransformMode } from "../../stores/type";
 import { INSTANCE_TYPES } from "../constants/data";
+import SelectionBox from "./SelectionBox";
+import { updateTransform } from "../utils/instanceSelection";
 
 const KEY_MODE = {
   POSITION: "Q",
@@ -14,6 +16,10 @@ const TransformGroup = () => {
   const { transformRef } = useCanvasContext();
   const [mode, setMode] = useState<TransformMode>("translate");
   // const center = useCanvasStore((state) => state.center);
+
+  const handeMouseUp = () => {
+    updateTransform(transformRef.current);
+  };
 
   useEffect(() => {
     const handleKeyDonw = (event: KeyboardEvent) => {
@@ -39,17 +45,24 @@ const TransformGroup = () => {
   }, []);
 
   return (
-    <TransformControls object={transformRef} mode={mode}>
-      <group ref={transformRef}>
-        {INSTANCE_TYPES.map((item, index) => (
-          <InstaneMeshTransform
-            type={item.type}
-            key={`${item.type}_tranfrom`}
-            indexMesh={index}
-          />
-        ))}
-      </group>
-    </TransformControls>
+    <>
+      <TransformControls
+        object={transformRef}
+        mode={mode}
+        onMouseUp={handeMouseUp}
+      >
+        <group ref={transformRef}>
+          {INSTANCE_TYPES.map((item, index) => (
+            <InstaneMeshTransform
+              type={item.type}
+              key={`${item.type}_tranfrom`}
+              indexMesh={index}
+            />
+          ))}
+        </group>
+      </TransformControls>
+      <SelectionBox />
+    </>
   );
 };
 

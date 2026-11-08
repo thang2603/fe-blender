@@ -8,8 +8,7 @@ import { useCanvasContext } from "../hooks/useCanvasContext";
 import type { InstanceType } from "../../stores/type";
 
 import {
-  calculateCenter,
-  clearInstanceTransform,
+  getLocalTransform,
   snapshotInstance,
   updateTransform,
 } from "../utils/instanceSelection";
@@ -63,25 +62,31 @@ const InstanceMesh = ({ type, indexMesh }: InstanceMeshProps) => {
     if (!mesh || !transformMesh) return;
 
     const instance = mesh.instances?.[instanceId];
-
     if (!instance || !instance.active) return;
-    const snap = snapshotInstance(instance);
-    if (!event.shiftKey) {
-      clearInstanceTransform(transformGroup, instancesGroup);
-    }
-    const oldCenter = transformGroup.position.clone();
-    mesh.removeInstances(instanceId);
-    transformMesh.addInstances(1, (obj) => {
-      obj.uuid = snap.uuid;
-      obj.position.copy(snap.position).sub(oldCenter);
-      obj.quaternion.copy(snap.quaternion);
-      obj.scale.copy(snap.scale);
-      obj.visible = false;
-    });
 
-    // 4. Tính lại center và re-center
-    const newCenter = calculateCenter(transformGroup);
-    updateTransform(transformGroup, newCenter);
+    // 1. Snapshot (world) và gỡ khỏi mesh thường trước
+
+    const snap = snapshotInstance(instance);
+    const value = getLocalTransform(
+      {
+        position: snap.position,
+        quaternion: snap.quaternion,
+        scale: snap.scale,
+      },
+      {
+        position: transformGroup.position,
+        quaternion: transformGroup.quaternion,
+        scale: transformGroup.scale,
+      },
+    );
+    transformMesh.addInstances(1, (obj) => {
+      obj.position.copy(value.position);
+      obj.quaternion.copy(value.quaternion);
+      obj.scale.copy(value.scale);
+    });
+    transformMesh.updateMatrixWorld(true);
+    updateTransform(transformGroup);
+    mesh.removeInstances(instanceId);
   };
 
   return <instancedMesh2 args={args} onClick={onClick} />;

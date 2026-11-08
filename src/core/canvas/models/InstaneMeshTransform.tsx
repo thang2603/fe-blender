@@ -5,12 +5,6 @@ import type { BufferGeometry, Material } from "three";
 import type { ThreeEvent } from "@react-three/fiber";
 import { useCanvasContext } from "../hooks/useCanvasContext";
 import type { InstanceType } from "../../stores/type";
-import {
-  calculateCenter,
-  clearInstanceTransform,
-  snapshotInstance,
-  updateTransform,
-} from "../utils/instanceSelection";
 
 type InstaneMeshTransformProps = {
   type: string;
@@ -48,7 +42,6 @@ const InstaneMeshTransform = ({
 
   const onClick = (event: ThreeEvent<MouseEvent>) => {
     event.stopPropagation();
-
     const instanceId = event.instanceId;
     if (instanceId === undefined) return;
 
@@ -66,25 +59,6 @@ const InstaneMeshTransform = ({
 
     const instance = transformMesh.instances?.[instanceId];
     if (!instance || !instance.active) return;
-    if (event.shiftKey) {
-      const snap = snapshotInstance(instance);
-      const oldCenter = transformGroup.position.clone();
-      transformMesh.removeInstances(instanceId);
-      mesh.addInstances(1, (obj) => {
-        obj.uuid = snap.uuid;
-        obj.position.copy(snap.position).add(oldCenter);
-        obj.quaternion.copy(snap.quaternion);
-        obj.scale.copy(snap.scale);
-        obj.visible = true;
-      });
-    } else {
-      clearInstanceTransform(transformGroup, instancesGroup, {
-        mesh: transformMesh,
-        id: instanceId,
-      });
-    }
-    const newCenter = calculateCenter(transformGroup);
-    updateTransform(transformGroup, newCenter);
   };
   return <instancedMesh2 args={args} onClick={onClick} />;
 };
