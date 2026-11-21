@@ -5,13 +5,15 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
-import { Group, Vector3 } from "three";
+import { Object3D, Vector3 } from "three";
 import { INIT_POSITION } from "../constants/data";
+import type { Mesh2 } from "../../stores/type";
 
 type CanvasContextType = {
-  transformRef: RefObject<Group>;
-  instancesRef: RefObject<Group>;
+  transformsRef: RefObject<Array<Mesh2>>;
+  instancesRef: RefObject<Array<Mesh2>>;
   mousePositionRef: RefObject<Vector3>;
+  pivotRef: RefObject<Object3D>;
 };
 
 type CanvasProviderType = {
@@ -21,14 +23,16 @@ type CanvasProviderType = {
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
 
 export const CanvasProvider = ({ children }: CanvasProviderType) => {
-  const transformRef = useRef<Group>(null!);
-  const instancesRef = useRef<Group>(null!);
+  const pivotRef = useRef<Object3D>(null!);
+  const transformsRef = useRef<Array<Mesh2>>([]);
+  const instancesRef = useRef<Array<Mesh2>>([]);
   const mousePositionRef = useRef<Vector3>(INIT_POSITION.clone());
   const value = useMemo(
     () => ({
-      transformRef,
+      transformsRef,
       instancesRef,
       mousePositionRef,
+      pivotRef,
     }),
     [],
   );

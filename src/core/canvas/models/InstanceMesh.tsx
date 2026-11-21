@@ -5,13 +5,8 @@ import "./extend";
 import { useGLTF } from "@react-three/drei";
 import type { ThreeEvent } from "@react-three/fiber";
 import { useCanvasContext } from "../hooks/useCanvasContext";
-import type { InstanceType } from "../../stores/type";
-
-import {
-  getLocalTransform,
-  snapshotInstance,
-  updateTransform,
-} from "../utils/instanceSelection";
+import { snapshotInstance } from "../utils/instanceSelection";
+import type { Entity, Mesh2 } from "../../stores/type";
 
 type InstanceMeshProps = {
   type: string;
@@ -21,7 +16,7 @@ type InstanceMeshProps = {
 const count = 100;
 const InstanceMesh = ({ type, indexMesh }: InstanceMeshProps) => {
   const { meshes, materials } = useGLTF(`/models/${type}.glb`);
-  const { instancesRef, transformRef } = useCanvasContext();
+  const { instancesRef, transformsRef, pivotRef } = useCanvasContext();
 
   const scene = useMemo(() => {
     if (!meshes || !materials) return null;
@@ -39,7 +34,7 @@ const InstanceMesh = ({ type, indexMesh }: InstanceMeshProps) => {
       [
         scene?.geometry.clone(),
         scene?.material.clone(),
-        { capacity: count, createEntities: true },
+        { capacity: count, createEntities: false },
       ] as ConstructorParameters<typeof InstancedMesh2>,
     [scene],
   );
@@ -49,47 +44,17 @@ const InstanceMesh = ({ type, indexMesh }: InstanceMeshProps) => {
     const instanceId = event.instanceId;
     if (instanceId === undefined) return;
 
-    const instancesGroup = instancesRef.current;
-    const transformGroup = transformRef.current;
-    if (!instancesGroup || !transformGroup) return;
-
-    const mesh = instancesGroup.children[
-      indexMesh
-    ] as InstancedMesh2<InstanceType>;
-    const transformMesh = transformGroup.children[
-      indexMesh
-    ] as InstancedMesh2<InstanceType>;
-    if (!mesh || !transformMesh) return;
-
-    const instance = mesh.instances?.[instanceId];
-    if (!instance || !instance.active) return;
-
-    // 1. Snapshot (world) và gỡ khỏi mesh thường trước
-
-    const snap = snapshotInstance(instance);
-    const value = getLocalTransform(
-      {
-        position: snap.position,
-        quaternion: snap.quaternion,
-        scale: snap.scale,
-      },
-      {
-        position: transformGroup.position,
-        quaternion: transformGroup.quaternion,
-        scale: transformGroup.scale,
-      },
-    );
-    transformMesh.addInstances(1, (obj) => {
-      obj.position.copy(value.position);
-      obj.quaternion.copy(value.quaternion);
-      obj.scale.copy(value.scale);
-    });
-    transformMesh.updateMatrixWorld(true);
-    updateTransform(transformGroup);
-    mesh.removeInstances(instanceId);
+    const ref = instancesRef.current[indexMesh];
+    if (!ref) return;
   };
 
-  return <instancedMesh2 args={args} onClick={onClick} />;
+  return (
+    <instancedMesh2
+      args={args}
+      onClick={onClick}
+      ref={(el) => (instancesRef.current[indexMesh] = el as Mesh2)}
+    />
+  );
 };
 
 export default InstanceMesh;

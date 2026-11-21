@@ -1,30 +1,36 @@
 import { TransformControls } from "@react-three/drei";
-import { useEffect, useState } from "react";
-import InstaneMeshTransform from "./InstaneMeshTransform";
+import { useEffect, useRef, useState } from "react";
+import * as THREE from "three";
 import { useCanvasContext } from "../hooks/useCanvasContext";
 import type { TransformMode } from "../../stores/type";
-import { INSTANCE_TYPES } from "../constants/data";
-import SelectionBox from "./SelectionBox";
-import { updateTransform } from "../utils/instanceSelection";
+import { INIT_POSITION, INIT_QUATERNION, INIT_SCALE } from "../constants/data";
 
 const KEY_MODE = {
   POSITION: "Q",
   ROTATION: "W",
   SCALE: "E",
 };
-const TransformGroup = () => {
-  const { transformRef } = useCanvasContext();
-  const [mode, setMode] = useState<TransformMode>("translate");
-  // const center = useCanvasStore((state) => state.center);
+const MIN_SCALE = 1e-4;
 
-  const handeMouseUp = () => {
-    updateTransform(transformRef.current);
-  };
+type Start = {
+  pos: THREE.Vector3;
+  quat: THREE.Quaternion;
+  scl: THREE.Vector3;
+};
+
+const TransformGroup = () => {
+  const { transformsRef, pivotRef } = useCanvasContext();
+  const [mode, setMode] = useState<TransformMode>("translate");
+
+  const startPivotPos = useRef(INIT_POSITION.clone());
+  const startPivotQuat = useRef(INIT_QUATERNION.clone());
+  const startPivotScale = useRef(INIT_SCALE.clone());
+  // starts.current[meshIndex][instanceIndex]
+  const starts = useRef<Start[][]>([]);
 
   useEffect(() => {
-    const handleKeyDonw = (event: KeyboardEvent) => {
-      const key = event.key.toUpperCase();
-      switch (key) {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      switch (event.key.toUpperCase()) {
         case KEY_MODE.POSITION:
           setMode("translate");
           break;
@@ -34,34 +40,16 @@ const TransformGroup = () => {
         case KEY_MODE.SCALE:
           setMode("scale");
           break;
-        default:
-          break;
       }
     };
-    window.addEventListener("keydown", handleKeyDonw);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDonw);
-    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   return (
     <>
-      <TransformControls
-        object={transformRef}
-        mode={mode}
-        onMouseUp={handeMouseUp}
-      >
-        <group ref={transformRef}>
-          {INSTANCE_TYPES.map((item, index) => (
-            <InstaneMeshTransform
-              type={item.type}
-              key={`${item.type}_tranfrom`}
-              indexMesh={index}
-            />
-          ))}
-        </group>
-      </TransformControls>
-      <SelectionBox />
+      <object3D ref={pivotRef} position={[0, 0, 0]} />
+      <TransformControls object={pivotRef} mode={mode} space="local" />
     </>
   );
 };
