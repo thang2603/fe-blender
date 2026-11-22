@@ -11,7 +11,7 @@ const SHORT_CUT = {
 };
 
 const useShortCut = () => {
-  const { instancesRef, transformsRef, mousePositionRef } = useCanvasContext();
+  const { instancesRef, mousePositionRef } = useCanvasContext();
 
   const indexByType = useMemo(() => {
     const res = new Map<number, string>();
@@ -55,7 +55,7 @@ const useShortCut = () => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [mousePositionRef, indexByType, transformsRef, instancesRef]);
+  }, [mousePositionRef, indexByType, instancesRef]);
 
   return null;
 };
