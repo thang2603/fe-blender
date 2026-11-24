@@ -5,12 +5,9 @@ import "./extend";
 import { useGLTF } from "@react-three/drei";
 import type { ThreeEvent } from "@react-three/fiber";
 import { useCanvasContext } from "../hooks/useCanvasContext";
-import {
-  getCenter,
-  selectOnly,
-  toggleSelected,
-} from "../utils/instanceSelection";
+
 import type { Mesh2 } from "../../stores/type";
+import { getCenter, selectOnly, toggleSelected } from "../utils/instanceHelper";
 
 type InstanceMeshProps = {
   type: string;
@@ -21,7 +18,7 @@ const CAPACITY = 100;
 
 const InstanceMesh = ({ type, indexMesh }: InstanceMeshProps) => {
   const { meshes, materials } = useGLTF(`/models/${type}.glb`);
-  const { instancesRef, pivotRef } = useCanvasContext();
+  const { instancesRef, pivotRef, selectedIdsRef } = useCanvasContext();
 
   const scene = useMemo(() => {
     if (!meshes || !materials) return null;
@@ -55,16 +52,16 @@ const InstanceMesh = ({ type, indexMesh }: InstanceMeshProps) => {
 
     const meshesList = instancesRef.current as unknown as InstancedMesh2[];
     if (!meshesList[indexMesh]) return;
-
-    if (event.shiftKey) toggleSelected(meshesList, indexMesh, id);
-    else selectOnly(meshesList, indexMesh, id);
+    const selectedIds = selectedIdsRef.current;
+    if (event.shiftKey) toggleSelected(selectedIds, indexMesh, id);
+    else selectOnly(selectedIds, indexMesh, id);
 
     // Đặt pivot ở tâm nhóm đang chọn, reset rotation/scale của pivot
     const pivot = pivotRef.current;
-    if (getCenter(meshesList, pivot.position) > 0) {
-      pivot.quaternion.identity();
-      pivot.scale.set(1, 1, 1);
-    }
+    const center = getCenter(selectedIds, meshesList);
+    pivot.position.copy(center);
+    pivot.quaternion.identity();
+    pivot.scale.set(1, 1, 1);
   };
 
   if (!args) return null;

@@ -13,7 +13,7 @@ type CanvasContextType = {
   instancesRef: RefObject<Array<Mesh2>>;
   mousePositionRef: RefObject<Vector3>;
   pivotRef: RefObject<Object3D>;
-  selectedIds: RefObject<Set<number>[]>;
+  selectedIdsRef: RefObject<Set<number>[]>;
 };
 
 type CanvasProviderType = {
@@ -26,7 +26,7 @@ export const CanvasProvider = ({ children }: CanvasProviderType) => {
   const pivotRef = useRef<Object3D>(null!);
   const instancesRef = useRef<Array<Mesh2>>([]);
   const mousePositionRef = useRef<Vector3>(INIT_POSITION.clone());
-  const selectedIds = useRef<Set<number>[]>(
+  const selectedIdsRef = useRef<Set<number>[]>(
     INSTANCE_TYPES.map(() => new Set<number>()),
   );
   const value = useMemo(
@@ -34,7 +34,7 @@ export const CanvasProvider = ({ children }: CanvasProviderType) => {
       instancesRef,
       mousePositionRef,
       pivotRef,
-      selectedIds,
+      selectedIdsRef,
     }),
     [],
   );
