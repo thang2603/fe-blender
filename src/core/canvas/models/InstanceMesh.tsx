@@ -8,6 +8,7 @@ import { useCanvasContext } from "../hooks/useCanvasContext";
 
 import type { Mesh2 } from "../../stores/type";
 import { getCenter, selectOnly, toggleSelected } from "../utils/instanceHelper";
+import useCanvasStore from "../../stores/useCanvasStore";
 
 type InstanceMeshProps = {
   type: string;
@@ -19,6 +20,7 @@ const CAPACITY = 100;
 const InstanceMesh = ({ type, indexMesh }: InstanceMeshProps) => {
   const { meshes, materials } = useGLTF(`/models/${type}.glb`);
   const { instancesRef, pivotRef, selectedIdsRef } = useCanvasContext();
+  const setCenter = useCanvasStore((state) => state.setCenter);
 
   const scene = useMemo(() => {
     if (!meshes || !materials) return null;
@@ -62,6 +64,7 @@ const InstanceMesh = ({ type, indexMesh }: InstanceMeshProps) => {
     pivot.position.copy(center);
     pivot.quaternion.identity();
     pivot.scale.set(1, 1, 1);
+    setCenter(pivot.position.clone());
   };
 
   if (!args) return null;

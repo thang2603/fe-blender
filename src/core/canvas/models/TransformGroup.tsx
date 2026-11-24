@@ -2,14 +2,10 @@ import { TransformControls } from "@react-three/drei";
 import { useEffect, useRef, useState } from "react";
 import { useCanvasContext } from "../hooks/useCanvasContext";
 import type { TransformMode } from "../../stores/type";
-import {
-  INIT_POSITION,
-  INIT_QUATERNION,
-  INIT_SCALE,
-  INSTANCE_TYPES,
-} from "../constants/data";
+import { INIT_POSITION, INIT_QUATERNION, INIT_SCALE } from "../constants/data";
 import { Matrix4, Quaternion, Vector3 } from "three";
 import type { InstancedMesh2 } from "@three.ez/instanced-mesh";
+import useCanvasStore from "../../stores/useCanvasStore";
 
 const KEY_MODE = {
   POSITION: "Q",
@@ -36,6 +32,7 @@ const _invQuat = new Quaternion();
 
 const TransformGroup = () => {
   const { pivotRef, instancesRef, selectedIdsRef } = useCanvasContext();
+  const setCenter = useCanvasStore((state) => state.setCenter);
   const [mode, setMode] = useState<TransformMode>("translate");
 
   const startPivotPos = useRef(INIT_POSITION.clone());
@@ -88,12 +85,12 @@ const TransformGroup = () => {
 
     // Cập nhật BVH một lần cho các instance đã di chuyển.
     // Một số version của setMatrixAt đã tự gọi bvh.move, nếu bạn thấy bị gọi 2 lần thì bỏ đoạn này.
-    const meshes = getMeshes();
-    for (const { meshIndex, ids } of groups.current) {
-      const bvh = (meshes[meshIndex] as any)?.bvh;
-      if (!bvh?.move) continue;
-      for (let k = 0; k < ids.length; k++) bvh.move(ids[k]);
-    }
+    // const meshes = getMeshes();
+    // for (const { meshIndex, ids } of groups.current) {
+    //   const bvh = (meshes[meshIndex] as any)?.bvh;
+    //   if (!bvh?.move) continue;
+    //   for (let k = 0; k < ids.length; k++) bvh.move(ids[k]);
+    // }
     groups.current = [];
 
     // Reset rotation/scale của pivot để lần kéo sau bắt đầu từ identity
@@ -102,6 +99,7 @@ const TransformGroup = () => {
     startPivotPos.current.copy(pivot.position);
     startPivotQuat.current.identity();
     startPivotScale.current.set(1, 1, 1);
+    setCenter(pivot.position.clone());
   };
 
   const handleChange = () => {

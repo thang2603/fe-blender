@@ -1,4 +1,4 @@
-import Editor from "./core/Index";
+import Editor from "./core";
 
 function App() {
   return (
